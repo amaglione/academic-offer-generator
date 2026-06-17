@@ -17,9 +17,12 @@ def _enrich_course(course: Course, db: Session) -> CourseSchema:
     eligible = (
         db.query(Professor)
         .join(ProfessorSubject, ProfessorSubject.professor_id == Professor.id)
-        .filter(ProfessorSubject.subject_id == course.subject_id)
+        .filter(
+            ProfessorSubject.subject_id == course.subject_id,
+            Professor.tenant_id == subject.tenant_id,
+        )
         .all()
-    )
+    ) if subject else []
     return CourseSchema(
         id=course.id,
         subject_id=course.subject_id,
@@ -74,6 +77,12 @@ def update_course(
     if not course:
         raise HTTPException(status_code=404, detail="Course not found")
     if body.professor_id is not None:
+        professor = db.query(Professor).filter(
+            Professor.id == body.professor_id,
+            Professor.tenant_id == current_user.tenant_id,
+        ).first()
+        if not professor:
+            raise HTTPException(status_code=400, detail="Professor not found or not in tenant")
         course.professor_id = body.professor_id
     if body.time_slot is not None:
         course.time_slot = body.time_slot

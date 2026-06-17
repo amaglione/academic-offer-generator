@@ -124,6 +124,33 @@ def test_export_published_offer(client, auth_headers, db):
     assert c["expected_students"] == 30
 
 
+def test_patch_course_rejects_cross_tenant_professor(client, auth_headers, db):
+    from app.models.academic import Subject, Professor
+    from app.models.tenant import Tenant
+    other_tenant = Tenant(id=2, name="Other University", active=True)
+    db.add(other_tenant)
+    db.flush()
+    offer = Offer(tenant_id=1, semester="2026-2", status="draft")
+    db.add(offer)
+    db.flush()
+    subject = Subject(tenant_id=1, career_id=1, name="Álgebra", year=1)
+    db.add(subject)
+    own_professor = Professor(tenant_id=1, name="Own Prof")
+    db.add(own_professor)
+    other_professor = Professor(tenant_id=2, name="Foreign Prof")
+    db.add(other_professor)
+    db.flush()
+    course = Course(offer_id=offer.id, subject_id=subject.id, professor_id=own_professor.id,
+                    time_slot={"id": 0, "day": 0}, expected_students=20)
+    db.add(course)
+    db.commit()
+
+    r = client.patch(f"/api/offers/{offer.id}/courses/{course.id}",
+                     headers=auth_headers, json={"professor_id": other_professor.id})
+    assert r.status_code == 400
+    assert "not in tenant" in r.json()["detail"]
+
+
 def test_export_draft_offer_returns_400(client, auth_headers, db):
     offer = Offer(tenant_id=1, semester="2026-2", status="draft")
     db.add(offer)
