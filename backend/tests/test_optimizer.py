@@ -67,7 +67,7 @@ def test_no_valid_slot_reason():
         "allowed_turnos": [999],  # turno_id 999 no existe en SLOTS_WITH_TURNO
     }]
     result = run_optimizer(demand, PROFESSORS, SLOTS_WITH_TURNO, PARAMS)
-    assert result["status"] == "optimal"  # solver corre sin cursos → trivialmente óptimo
+    assert result["status"] == "infeasible"
     assert len(result["assignments"]) == 0
     assert len(result["unassigned_subjects"]) == 1
     assert result["unassigned_subjects"][0]["subject_id"] == 1

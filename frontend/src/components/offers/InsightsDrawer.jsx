@@ -1,12 +1,5 @@
 import { X, AlertCircle, AlertTriangle } from 'lucide-react'
 
-const REASON_LABELS = {
-  no_professors: 'Sin docentes',
-  no_valid_slot: 'Turno restringido',
-  infeasible: 'Sin solución',
-  'No feasible assignment': 'Sin solución',
-}
-
 const SEVERITY_ICONS = {
   error: <AlertCircle className="h-4 w-4 text-red-500 shrink-0" />,
   warning: <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0" />,
@@ -29,7 +22,7 @@ function AlertItem({ insight }) {
                   <span className="text-gray-400 shrink-0">{item.demand} alumnos</span>
                   <span className="text-gray-300">·</span>
                   <span className="text-gray-400 shrink-0">
-                    {REASON_LABELS[item.reason] ?? item.reason}
+                    {item.reason}
                   </span>
                 </div>
               ))}

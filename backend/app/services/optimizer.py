@@ -50,6 +50,7 @@ def run_optimizer(
     # Courses with no valid (professor, slot) pair are collected as no_valid_slot
     # and excluded from the model; the solver runs for the rest.
     no_valid_slot_subjects = []
+    no_valid_slot_indices = set()
     for c, course in enumerate(courses):
         vars_for_course = [
             x[c, prof_by_id[pid], s]
@@ -64,6 +65,14 @@ def run_optimizer(
             no_valid_slot_subjects.append(
                 {"subject_id": course["subject_id"], "reason": "no_valid_slot"}
             )
+            no_valid_slot_indices.add(c)
+
+    if len(no_valid_slot_subjects) == num_courses:
+        return {
+            "status": "infeasible",
+            "assignments": [],
+            "unassigned_subjects": no_valid_slot_subjects,
+        }
 
     # Professor can't teach two courses in the same slot
     for p in range(num_professors):
@@ -149,13 +158,12 @@ def run_optimizer(
             "unassigned_subjects": no_valid_slot_subjects,
         }
 
-    no_valid_slot_ids = {u["subject_id"] for u in no_valid_slot_subjects}
     return {
         "status": "infeasible",
         "assignments": [],
         "unassigned_subjects": no_valid_slot_subjects + [
-            {"subject_id": c["subject_id"], "reason": "infeasible"}
-            for c in courses
-            if c["subject_id"] not in no_valid_slot_ids
+            {"subject_id": courses[i]["subject_id"], "reason": "infeasible"}
+            for i in range(num_courses)
+            if i not in no_valid_slot_indices
         ],
     }

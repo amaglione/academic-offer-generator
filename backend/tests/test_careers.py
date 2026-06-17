@@ -124,9 +124,9 @@ def test_optimizer_respects_allowed_turnos():
         "solver_timeout_seconds": 10,
     }
     result = run_optimizer(demand, professors, time_slots, params)
-    # Con el filtro, no hay slots válidos → el curso queda en unassigned_subjects con
-    # reason="no_valid_slot". El solver corre sin cursos → trivialmente óptimo.
-    assert result["status"] == "optimal"
+    # Con el filtro, no hay slots válidos → todos los cursos quedan en no_valid_slot
+    # → el optimizador retorna infeasible sin correr el solver.
+    assert result["status"] == "infeasible"
     assert len(result["assignments"]) == 0
     assert len(result["unassigned_subjects"]) == 1
     assert result["unassigned_subjects"][0]["reason"] == "no_valid_slot"

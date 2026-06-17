@@ -82,15 +82,14 @@ def _compute_insights(
         return insights
 
     # Alert: solapamiento horario (mismo año/carrera en mismo slot)
-    subject_meta = {d["subject_id"]: {"year": d["year"], "career_id": d["career_id"]} for d in demand}
     year_career_slot = defaultdict(list)
     for a in assignments:
-        meta = subject_meta.get(a["subject_id"], {})
-        year = meta.get("year")
-        career_id = meta.get("career_id")
+        d = demand_by_subject.get(a["subject_id"], {})
+        year = d.get("year")
+        career_id = d.get("career_id")
         if year is not None and career_id is not None:
             slot = a["time_slot"]
-            key = (year, career_id, slot.get("day"), slot.get("start_hour"))
+            key = (year, career_id, slot.get("id"))
             year_career_slot[key].append(a["subject_id"])
     conflicts = sum(1 for courses_in_slot in year_career_slot.values() if len(courses_in_slot) > 1)
     if conflicts > 0:
@@ -132,20 +131,24 @@ def _compute_insights(
     for a in assignments:
         turno_name = a["time_slot"].get("turno_name", "Sin turno")
         slot_dist[turno_name] += 1
+    turno_order = {s["turno_name"]: s.get("turno_id", 999) for s in params.get("time_slots", [])}
     insights.append({
         "type": "stat",
         "severity": None,
         "key": "slot_distribution",
         "title": "Distribución por turno",
         "value": None,
-        "items": [{"name": k, "count": v} for k, v in sorted(slot_dist.items())],
+        "items": [
+            {"name": k, "count": v}
+            for k, v in sorted(slot_dist.items(), key=lambda kv: turno_order.get(kv[0], 999))
+        ],
     })
 
     # Stat: pico de aulas (máx. cursos simultáneos en un mismo slot día/hora)
     slot_counts: dict[tuple, int] = defaultdict(int)
     for a in assignments:
         slot = a["time_slot"]
-        key = (slot.get("day"), slot.get("start_hour"))
+        key = slot.get("id")
         slot_counts[key] += 1
     peak = max(slot_counts.values()) if slot_counts else 0
     insights.append({
