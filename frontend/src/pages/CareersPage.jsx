@@ -1,11 +1,13 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { BookOpen, ChevronRight, Loader2 } from 'lucide-react'
 import { useCareers } from '@/hooks/useCareers'
-import { useState } from 'react'
 
 function TurnosBadge({ allowedTurnos, turnos }) {
-  if (!allowedTurnos || allowedTurnos.length === 0) {
+  if (allowedTurnos === null || allowedTurnos === undefined) {
     return <span className="text-xs text-gray-400">Todos</span>
+  }
+  if (allowedTurnos.length === 0) {
+    return <span className="text-xs text-red-400">Sin turnos</span>
   }
   const names = turnos
     .filter(t => allowedTurnos.includes(t.id))
@@ -23,6 +25,7 @@ export default function CareersPage({
   params,
   subjects,
   subjectsLoading,
+  subjectsError,
   selectedCareerId,
   onSelectCareer,
   onSelectSubject,
@@ -46,7 +49,7 @@ export default function CareersPage({
   const turnos = params?.turnos || []
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="flex h-full overflow-hidden">
       {/* Columna carreras */}
       <div className="w-64 border-r border-gray-200 flex flex-col bg-white shrink-0">
         <div className="p-4 border-b border-gray-200">
@@ -90,6 +93,10 @@ export default function CareersPage({
         ) : subjectsLoading ? (
           <div className="flex items-center justify-center h-full">
             <Loader2 className="h-6 w-6 animate-spin text-gray-300" />
+          </div>
+        ) : subjectsError ? (
+          <div className="flex items-center justify-center h-full text-red-400">
+            <p className="text-sm">{subjectsError}</p>
           </div>
         ) : (subjects || []).length === 0 ? (
           <div className="flex items-center justify-center h-full text-gray-400">

@@ -15,7 +15,7 @@ function CareersRoute() {
   const { params } = useParameters()
   const [selectedCareerId, setSelectedCareerId] = useState(null)
   const [selectedSubject, setSelectedSubject] = useState(null)
-  const { subjects, loading, updateSubject } = useCareerSubjects(selectedCareerId)
+  const { subjects, loading, error, updateSubject } = useCareerSubjects(selectedCareerId)
 
   return (
     <>
@@ -23,6 +23,7 @@ function CareersRoute() {
         params={params}
         subjects={subjects}
         subjectsLoading={loading}
+        subjectsError={error}
         selectedCareerId={selectedCareerId}
         onSelectCareer={id => { setSelectedCareerId(id); setSelectedSubject(null) }}
         onSelectSubject={setSelectedSubject}

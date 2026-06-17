@@ -5,7 +5,7 @@ export function useCareers() {
   const [careers, setCareers] = useState([])
 
   useEffect(() => {
-    client.get('/careers').then(r => setCareers(r.data))
+    client.get('/careers').then(r => setCareers(r.data)).catch(() => {})
   }, [])
 
   return { careers }
