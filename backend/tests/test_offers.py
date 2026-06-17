@@ -63,3 +63,25 @@ def test_course_includes_career_and_year(client, auth_headers, db):
     assert c["career_id"] == 1
     assert c["career_name"] == "Test Career"
     assert c["year"] == 2
+
+
+def test_reopen_offer(client, auth_headers, db):
+    offer = Offer(tenant_id=1, semester="2026-2", status="published")
+    db.add(offer)
+    db.commit()
+
+    r = client.post(f"/api/offers/{offer.id}/reopen", headers=auth_headers)
+    assert r.status_code == 200
+    assert r.json()["status"] == "draft"
+
+    r2 = client.get(f"/api/offers/{offer.id}", headers=auth_headers)
+    assert r2.json()["status"] == "draft"
+
+
+def test_reopen_draft_offer_returns_400(client, auth_headers, db):
+    offer = Offer(tenant_id=1, semester="2026-2", status="draft")
+    db.add(offer)
+    db.commit()
+
+    r = client.post(f"/api/offers/{offer.id}/reopen", headers=auth_headers)
+    assert r.status_code == 400

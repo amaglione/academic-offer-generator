@@ -90,3 +90,15 @@ def approve_offer(offer_id: int, current_user: User = Depends(get_current_user),
     offer.status = "published"
     db.commit()
     return {"id": offer.id, "status": offer.status}
+
+
+@router.post("/{offer_id}/reopen")
+def reopen_offer(offer_id: int, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+    offer = db.query(Offer).filter(Offer.id == offer_id, Offer.tenant_id == current_user.tenant_id).first()
+    if not offer:
+        raise HTTPException(status_code=404, detail="Offer not found")
+    if offer.status != "published":
+        raise HTTPException(status_code=400, detail="Offer is not published")
+    offer.status = "draft"
+    db.commit()
+    return {"id": offer.id, "status": offer.status}

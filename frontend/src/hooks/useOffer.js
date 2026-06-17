@@ -63,11 +63,17 @@ export function useOffer() {
     await loadOffer(offer.id)
   }
 
+  async function reopen() {
+    if (!offer) return
+    await client.post(`/offers/${offer.id}/reopen`)
+    await loadOffer(offer.id)
+  }
+
   async function patchCourse(courseId, updates) {
     if (!offer) return
     await client.patch(`/offers/${offer.id}/courses/${courseId}`, updates)
     await loadOffer(offer.id)
   }
 
-  return { offer, offers, generating, jobError, generate, approve, patchCourse }
+  return { offer, offers, generating, jobError, generate, approve, reopen, patchCourse }
 }

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { RefreshCw, Check, Loader2, AlertCircle } from 'lucide-react'
+import { RefreshCw, Check, Loader2, AlertCircle, Download, RotateCcw } from 'lucide-react'
 import { toast } from 'sonner'
 import { useOffer } from '@/hooks/useOffer'
 import { useParameters } from '@/hooks/useParameters'
@@ -20,11 +20,12 @@ import {
 } from '@/components/ui/alert-dialog'
 
 export default function OffersPage() {
-  const { offer, offers, generating, jobError, generate, approve, patchCourse } = useOffer()
+  const { offer, offers, generating, jobError, generate, approve, reopen, patchCourse } = useOffer()
   const { params } = useParameters()
   const [selectedCareerIds, setSelectedCareerIds] = useState([])
   const [editingCourse, setEditingCourse] = useState(null)
   const [confirmRegenerate, setConfirmRegenerate] = useState(false)
+  const [confirmReopen, setConfirmReopen] = useState(false)
 
   const careers = [
     ...new Map(
@@ -37,9 +38,23 @@ export default function OffersPage() {
   const coursesWithYear = (offer?.courses || []).map(c => ({ ...c, year: c.year || 1 }))
   const timeSlots = params?.time_slots || []
   const isDraft = offer?.status === 'draft'
+  const isPublished = offer?.status === 'published'
   const noOffer = !offer && !generating
 
   async function handleCourseDrop(courseId, newSlot) {
+    const course = offer.courses.find(c => c.id === courseId)
+    if (course) {
+      const conflict = offer.courses.find(c =>
+        c.id !== courseId &&
+        c.professor_id === course.professor_id &&
+        c.time_slot?.day === newSlot.day &&
+        c.time_slot?.start_hour === newSlot.start_hour
+      )
+      if (conflict) {
+        toast.error(`${course.professor_name} ya tiene un curso en esa franja`)
+        return
+      }
+    }
     await patchCourse(courseId, { time_slot: newSlot })
     toast.success('Curso movido')
   }
@@ -47,6 +62,12 @@ export default function OffersPage() {
   async function handleApprove() {
     await approve()
     toast.success('Oferta aprobada y publicada')
+  }
+
+  async function handleReopen() {
+    setConfirmReopen(false)
+    await reopen()
+    toast.success('Oferta reabierta como borrador')
   }
 
   async function handleGenerate() {
@@ -88,6 +109,13 @@ export default function OffersPage() {
             <Button size="sm" onClick={handleApprove} className="bg-green-600 hover:bg-green-700">
               <Check className="h-3.5 w-3.5 mr-1.5" />
               Aprobar oferta
+            </Button>
+          )}
+
+          {isPublished && (
+            <Button variant="outline" size="sm" onClick={() => setConfirmReopen(true)}>
+              <RotateCcw className="h-3.5 w-3.5 mr-1.5" />
+              Reabrir
             </Button>
           )}
         </div>
@@ -148,10 +176,29 @@ export default function OffersPage() {
         </AlertDialogContent>
       </AlertDialog>
 
+      {/* Confirm reabrir */}
+      <AlertDialog open={confirmReopen} onOpenChange={setConfirmReopen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Reabrir oferta?</AlertDialogTitle>
+            <AlertDialogDescription>
+              La oferta volverá a estado borrador. Los cursos se mantienen tal cual están.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleReopen}>
+              Reabrir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       {/* Modal edición */}
       {editingCourse && (
         <CourseEditModal
           course={editingCourse}
+          allCourses={offer.courses}
           onClose={() => setEditingCourse(null)}
           onSave={updates => patchCourse(editingCourse.id, updates)}
         />
