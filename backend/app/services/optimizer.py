@@ -46,7 +46,10 @@ def run_optimizer(
                     continue
                 x[c, p, s] = model.NewBoolVar(f"x_{c}_{p}_{s}")
 
-    # Each course assigned to exactly one (professor, slot)
+    # Each course assigned to exactly one (professor, slot).
+    # Courses with no valid (professor, slot) pair are collected as no_valid_slot
+    # and excluded from the model; the solver runs for the rest.
+    no_valid_slot_subjects = []
     for c, course in enumerate(courses):
         vars_for_course = [
             x[c, prof_by_id[pid], s]
@@ -58,16 +61,9 @@ def run_optimizer(
         if vars_for_course:
             model.AddExactlyOne(vars_for_course)
         else:
-            # No valid (professor, slot) combination exists for this course —
-            # treat the entire problem as infeasible immediately.
-            return {
-                "status": "infeasible",
-                "assignments": [],
-                "unassigned_subjects": [
-                    {"subject_id": c2["subject_id"], "reason": "No feasible assignment"}
-                    for c2 in courses
-                ],
-            }
+            no_valid_slot_subjects.append(
+                {"subject_id": course["subject_id"], "reason": "no_valid_slot"}
+            )
 
     # Professor can't teach two courses in the same slot
     for p in range(num_professors):
@@ -150,14 +146,16 @@ def run_optimizer(
         return {
             "status": "optimal" if status == cp_model.OPTIMAL else "feasible",
             "assignments": assignments,
-            "unassigned_subjects": [],
+            "unassigned_subjects": no_valid_slot_subjects,
         }
 
+    no_valid_slot_ids = {u["subject_id"] for u in no_valid_slot_subjects}
     return {
         "status": "infeasible",
         "assignments": [],
-        "unassigned_subjects": [
-            {"subject_id": c["subject_id"], "reason": "No feasible assignment"}
+        "unassigned_subjects": no_valid_slot_subjects + [
+            {"subject_id": c["subject_id"], "reason": "infeasible"}
             for c in courses
+            if c["subject_id"] not in no_valid_slot_ids
         ],
     }
