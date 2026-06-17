@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/alert-dialog'
 
 export default function OffersPage() {
-  const { offer, offers, generating, jobError, generate, approve, reopen, patchCourse } = useOffer()
+  const { offer, offers, generating, jobError, generate, approve, reopen, exportOffer, patchCourse } = useOffer()
   const { params } = useParameters()
   const [selectedCareerIds, setSelectedCareerIds] = useState([])
   const [editingCourse, setEditingCourse] = useState(null)
@@ -113,10 +113,16 @@ export default function OffersPage() {
           )}
 
           {isPublished && (
-            <Button variant="outline" size="sm" onClick={() => setConfirmReopen(true)}>
-              <RotateCcw className="h-3.5 w-3.5 mr-1.5" />
-              Reabrir
-            </Button>
+            <>
+              <Button variant="outline" size="sm" onClick={() => setConfirmReopen(true)}>
+                <RotateCcw className="h-3.5 w-3.5 mr-1.5" />
+                Reabrir
+              </Button>
+              <Button variant="outline" size="sm" onClick={exportOffer}>
+                <Download className="h-3.5 w-3.5 mr-1.5" />
+                Exportar
+              </Button>
+            </>
           )}
         </div>
       </div>

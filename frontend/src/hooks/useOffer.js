@@ -69,11 +69,23 @@ export function useOffer() {
     await loadOffer(offer.id)
   }
 
+  async function exportOffer() {
+    if (!offer) return
+    const r = await client.get(`/offers/${offer.id}/export`)
+    const blob = new Blob([JSON.stringify(r.data, null, 2)], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `oferta-${offer.semester}.json`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
   async function patchCourse(courseId, updates) {
     if (!offer) return
     await client.patch(`/offers/${offer.id}/courses/${courseId}`, updates)
     await loadOffer(offer.id)
   }
 
-  return { offer, offers, generating, jobError, generate, approve, reopen, patchCourse }
+  return { offer, offers, generating, jobError, generate, approve, reopen, exportOffer, patchCourse }
 }

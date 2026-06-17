@@ -90,3 +90,44 @@ def test_reopen_draft_offer_returns_400(client, auth_headers, db):
 def test_reopen_nonexistent_offer_returns_404(client, auth_headers):
     r = client.post("/api/offers/999/reopen", headers=auth_headers)
     assert r.status_code == 404
+
+
+def test_export_published_offer(client, auth_headers, db):
+    from app.models.academic import Subject, Professor
+    offer = Offer(tenant_id=1, semester="2026-2", status="published")
+    db.add(offer)
+    db.flush()
+    subject = Subject(tenant_id=1, career_id=1, name="Álgebra", year=2)
+    db.add(subject)
+    professor = Professor(tenant_id=1, name="García")
+    db.add(professor)
+    db.flush()
+    course = Course(
+        offer_id=offer.id, subject_id=subject.id, professor_id=professor.id,
+        time_slot={"day": 0, "start_hour": 8, "end_hour": 10, "duration_hours": 2},
+        expected_students=30,
+    )
+    db.add(course)
+    db.commit()
+
+    r = client.get(f"/api/offers/{offer.id}/export", headers=auth_headers)
+    assert r.status_code == 200
+    data = r.json()
+    assert data["semester"] == "2026-2"
+    assert data["status"] == "published"
+    assert len(data["courses"]) == 1
+    c = data["courses"][0]
+    assert c["subject_name"] == "Álgebra"
+    assert c["career_name"] == "Test Career"
+    assert c["year"] == 2
+    assert c["professor_name"] == "García"
+    assert c["expected_students"] == 30
+
+
+def test_export_draft_offer_returns_400(client, auth_headers, db):
+    offer = Offer(tenant_id=1, semester="2026-2", status="draft")
+    db.add(offer)
+    db.commit()
+
+    r = client.get(f"/api/offers/{offer.id}/export", headers=auth_headers)
+    assert r.status_code == 400
