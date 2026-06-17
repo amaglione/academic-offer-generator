@@ -1,9 +1,7 @@
 import { createContext, useContext, useState } from 'react'
-import { setToken, clearToken } from '../api/client'
+import { setToken, clearToken, STORAGE_KEY } from '../api/client'
 
 const AuthContext = createContext(null)
-
-const STORAGE_KEY = 'auth'
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
