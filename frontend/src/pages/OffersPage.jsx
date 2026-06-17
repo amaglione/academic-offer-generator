@@ -1,157 +1,159 @@
-import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import client from '../api/client'
-import { useAuth } from '../context/AuthContext'
-import CalendarGrid from '../components/CalendarGrid'
-import CareerFilter from '../components/CareerFilter'
-import CourseEditModal from '../components/CourseEditModal'
+import { useState } from 'react'
+import { RefreshCw, Check, Loader2, AlertCircle } from 'lucide-react'
+import { toast } from 'sonner'
+import { useOffer } from '@/hooks/useOffer'
+import { useParameters } from '@/hooks/useParameters'
+import CalendarGrid from '@/components/calendar/CalendarGrid'
+import CareerFilter from '@/components/shared/CareerFilter'
+import StatusBadge from '@/components/shared/StatusBadge'
+import CourseEditModal from '@/components/calendar/CourseEditModal'
+import { Button } from '@/components/ui/button'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 
 export default function OffersPage() {
-  const [offer, setOffer] = useState(null)
-  const [offers, setOffers] = useState([])
-  const [timeSlots, setTimeSlots] = useState([])
-  const [careers, setCareers] = useState([])
+  const { offer, offers, generating, jobError, generate, approve, patchCourse } = useOffer()
+  const { params } = useParameters()
   const [selectedCareerIds, setSelectedCareerIds] = useState([])
   const [editingCourse, setEditingCourse] = useState(null)
-  const [generating, setGenerating] = useState(false)
-  const [jobId, setJobId] = useState(null)
   const [confirmRegenerate, setConfirmRegenerate] = useState(false)
-  const { logout } = useAuth()
-  const navigate = useNavigate()
 
-  useEffect(() => {
-    client.get('/parameters').then(r => setTimeSlots(r.data.time_slots))
-    loadOffers()
-  }, [])
+  const careers = [
+    ...new Map(
+      (offer?.courses || [])
+        .filter(c => c.career_id)
+        .map(c => [c.career_id, { id: c.career_id, name: c.career_name || `Carrera ${c.career_id}` }])
+    ).values(),
+  ]
 
-  useEffect(() => {
-    if (!jobId) return
-    const interval = setInterval(async () => {
-      const r = await client.get(`/jobs/${jobId}`)
-      if (r.data.status === 'done') {
-        clearInterval(interval)
-        setJobId(null)
-        setGenerating(false)
-        await loadOffers()
-        if (r.data.offer_id) loadOffer(r.data.offer_id)
-      } else if (r.data.status === 'failed') {
-        clearInterval(interval)
-        setJobId(null)
-        setGenerating(false)
-        alert('Error al generar la oferta: ' + r.data.error)
-      }
-    }, 2000)
-    return () => clearInterval(interval)
-  }, [jobId])
+  const coursesWithYear = (offer?.courses || []).map(c => ({ ...c, year: c.year || 1 }))
+  const timeSlots = params?.time_slots || []
+  const isDraft = offer?.status === 'draft'
+  const noOffer = !offer && !generating
 
-  async function loadOffers() {
-    const r = await client.get('/offers')
-    setOffers(r.data)
-    if (r.data.length > 0) loadOffer(r.data[0].id)
-  }
-
-  async function loadOffer(id) {
-    const r = await client.get(`/offers/${id}`)
-    setOffer(r.data)
-    const careerMap = {}
-    for (const course of r.data.courses) {
-      if (course.career_id) careerMap[course.career_id] = course.career_name || `Carrera ${course.career_id}`
-    }
-    setCareers(Object.entries(careerMap).map(([id, name]) => ({ id: parseInt(id), name })))
-  }
-
-  async function handleGenerate() {
-    setGenerating(true)
-    setConfirmRegenerate(false)
-    const r = await client.post('/generate?semester=2026-2')
-    setJobId(r.data.job_id)
+  async function handleCourseDrop(courseId, newSlot) {
+    await patchCourse(courseId, { time_slot: newSlot })
+    toast.success('Curso movido')
   }
 
   async function handleApprove() {
-    if (!offer) return
-    await client.post(`/offers/${offer.id}/approve`)
-    loadOffer(offer.id)
+    await approve()
+    toast.success('Oferta aprobada y publicada')
   }
 
-  const coursesWithYear = (offer?.courses || []).map(c => ({ ...c, year: c.year || 1 }))
+  async function handleGenerate() {
+    setConfirmRegenerate(false)
+    await generate()
+  }
 
   return (
-    <div style={{ background: '#0f172a', minHeight: '100vh', color: '#e2e8f0' }}>
-      {/* Top bar */}
-      <div style={{ background: '#1e293b', borderBottom: '1px solid #334155', padding: '0.6rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '0.5rem' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <span style={{ fontWeight: 600 }}>Oferta Académica</span>
+    <div className="p-6">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
+        <div className="flex items-center gap-3 flex-wrap">
+          <h1 className="text-xl font-semibold text-gray-900">
+            {offer ? `Oferta ${offer.semester}` : 'Calendario'}
+          </h1>
+          {offer && <StatusBadge status={offer.status} />}
           {offer && (
-            <span style={{ background: offer.status === 'published' ? '#166534' : '#92400e', color: offer.status === 'published' ? '#86efac' : '#fbbf24', border: `1px solid ${offer.status === 'published' ? '#16a34a' : '#b45309'}`, borderRadius: '4px', padding: '0.1rem 0.5rem', fontSize: '0.7rem' }}>
-              {offer.status === 'published' ? 'PUBLICADA' : 'BORRADOR'}
-            </span>
+            <span className="text-sm text-gray-400">{offer.courses?.length || 0} cursos</span>
           )}
-          {offer && <span style={{ color: '#64748b', fontSize: '0.8rem' }}>{offer.semester} · {offer.courses?.length || 0} cursos</span>}
         </div>
-        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+
+        <div className="flex items-center gap-2 flex-wrap">
           <CareerFilter careers={careers} selected={selectedCareerIds} onChange={setSelectedCareerIds} />
-          <button onClick={() => navigate('/parameters')} style={{ padding: '0.3rem 0.75rem', background: '#1e293b', border: '1px solid #334155', borderRadius: '4px', color: '#94a3b8', cursor: 'pointer', fontSize: '0.8rem' }}>
-            Parámetros
-          </button>
-          {offer?.status !== 'published' && (
-            <button onClick={() => setConfirmRegenerate(true)} disabled={generating} style={{ padding: '0.3rem 0.75rem', background: '#1e293b', border: '1px solid #334155', borderRadius: '4px', color: '#94a3b8', cursor: 'pointer', fontSize: '0.8rem' }}>
-              {generating ? 'Generando...' : offers.length === 0 ? 'Generar oferta' : 'Regenerar'}
-            </button>
+
+          {noOffer && (
+            <Button size="sm" onClick={handleGenerate} disabled={generating}>
+              Generar oferta
+            </Button>
           )}
-          {offer?.status === 'draft' && (
-            <button onClick={handleApprove} style={{ padding: '0.3rem 0.75rem', background: '#16a34a', border: 'none', borderRadius: '4px', color: 'white', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 600 }}>
-              ✓ Aprobar oferta
-            </button>
+
+          {offer && isDraft && (
+            <Button variant="outline" size="sm" onClick={() => setConfirmRegenerate(true)} disabled={generating}>
+              <RefreshCw className="h-3.5 w-3.5 mr-1.5" />
+              Regenerar
+            </Button>
           )}
-          <button onClick={logout} style={{ padding: '0.3rem 0.75rem', background: '#1e293b', border: '1px solid #334155', borderRadius: '4px', color: '#94a3b8', cursor: 'pointer', fontSize: '0.8rem' }}>
-            Salir
-          </button>
+
+          {isDraft && (
+            <Button size="sm" onClick={handleApprove} className="bg-green-600 hover:bg-green-700">
+              <Check className="h-3.5 w-3.5 mr-1.5" />
+              Aprobar oferta
+            </Button>
+          )}
         </div>
       </div>
 
-      {/* Calendar */}
-      <div style={{ padding: '1rem' }}>
-        {generating && (
-          <div style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>
-            <p>Ejecutando optimizador... esto puede tomar varios minutos.</p>
-          </div>
-        )}
-        {!generating && offer && (
-          <CalendarGrid
-            courses={coursesWithYear}
-            timeSlots={timeSlots}
-            selectedCareerIds={selectedCareerIds}
-            onCourseClick={offer.status === 'draft' ? setEditingCourse : () => {}}
-          />
-        )}
-        {!generating && !offer && (
-          <div style={{ textAlign: 'center', padding: '4rem', color: '#64748b' }}>
-            <p>No hay oferta generada. Hacé clic en "Generar oferta" para comenzar.</p>
-          </div>
-        )}
-      </div>
-
-      {/* Regenerate confirmation */}
-      {confirmRegenerate && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-          <div style={{ background: '#1e293b', borderRadius: '8px', padding: '1.5rem', maxWidth: '360px' }}>
-            <h3 style={{ color: '#e2e8f0', marginTop: 0 }}>¿Regenerar oferta?</h3>
-            <p style={{ color: '#94a3b8', fontSize: '0.9rem' }}>Esto descartará el borrador actual y todos los ajustes manuales.</p>
-            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
-              <button onClick={() => setConfirmRegenerate(false)} style={{ padding: '0.4rem 1rem', background: 'transparent', border: '1px solid #334155', borderRadius: '4px', color: '#94a3b8', cursor: 'pointer' }}>Cancelar</button>
-              <button onClick={handleGenerate} style={{ padding: '0.4rem 1rem', background: '#ef4444', border: 'none', borderRadius: '4px', color: 'white', cursor: 'pointer', fontWeight: 600 }}>Regenerar</button>
-            </div>
-          </div>
+      {/* Error del job */}
+      {jobError && (
+        <div className="flex items-center gap-2 rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700 mb-4">
+          <AlertCircle className="h-4 w-4 shrink-0" />
+          Error al generar: {jobError}
         </div>
       )}
 
-      {/* Course edit modal */}
+      {/* Generando */}
+      {generating && (
+        <div className="flex flex-col items-center justify-center py-28 text-gray-400">
+          <Loader2 className="h-8 w-8 animate-spin text-blue-400 mb-4" />
+          <p className="font-medium text-gray-600">Ejecutando optimizador...</p>
+          <p className="text-sm mt-1">Esto puede tardar varios minutos.</p>
+        </div>
+      )}
+
+      {/* Sin oferta */}
+      {noOffer && (
+        <div className="flex flex-col items-center justify-center py-28 text-gray-400">
+          <p className="text-lg font-medium text-gray-500">No hay oferta generada</p>
+          <p className="text-sm mt-1">Hacé clic en "Generar oferta" para comenzar.</p>
+        </div>
+      )}
+
+      {/* Calendario */}
+      {!generating && offer && timeSlots.length > 0 && (
+        <CalendarGrid
+          courses={coursesWithYear}
+          timeSlots={timeSlots}
+          selectedCareerIds={selectedCareerIds}
+          onCourseClick={isDraft ? setEditingCourse : () => {}}
+          onCourseDrop={handleCourseDrop}
+          draggable={isDraft}
+        />
+      )}
+
+      {/* Confirm regenerar */}
+      <AlertDialog open={confirmRegenerate} onOpenChange={setConfirmRegenerate}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Regenerar oferta?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esto descartará el borrador actual y todos los ajustes manuales. La acción no se puede deshacer.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleGenerate} className="bg-red-600 hover:bg-red-700">
+              Regenerar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Modal edición */}
       {editingCourse && (
         <CourseEditModal
           course={editingCourse}
-          offerId={offer.id}
           onClose={() => setEditingCourse(null)}
-          onSave={() => loadOffer(offer.id)}
+          onSave={updates => patchCourse(editingCourse.id, updates)}
         />
       )}
     </div>
