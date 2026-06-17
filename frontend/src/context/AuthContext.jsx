@@ -3,11 +3,19 @@ import { setToken, clearToken } from '../api/client'
 
 const AuthContext = createContext(null)
 
+const STORAGE_KEY = 'auth'
+
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null)
+  const [user, setUser] = useState(() => {
+    try {
+      const s = localStorage.getItem(STORAGE_KEY)
+      return s ? { username: JSON.parse(s).username } : null
+    } catch { return null }
+  })
 
   function login(token, username) {
     setToken(token)
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ token, username })) } catch {}
     setUser({ username })
   }
 
