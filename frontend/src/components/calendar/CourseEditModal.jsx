@@ -14,7 +14,7 @@ export default function CourseEditModal({ course, allCourses, onClose, onSave })
         c.id !== course.id &&
         c.professor_id === professorId &&
         c.time_slot?.day === course.time_slot?.day &&
-        c.time_slot?.start_hour === course.time_slot?.start_hour
+        c.time_slot?.turno_id === course.time_slot?.turno_id
       )
       if (conflict) {
         setError('Este docente ya tiene un curso en esta franja horaria')
@@ -29,7 +29,7 @@ export default function CourseEditModal({ course, allCourses, onClose, onSave })
   }
 
   const slot = course.time_slot
-  const dayNames = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes']
+  const dayNames = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
 
   return (
     <Dialog open onOpenChange={onClose}>
