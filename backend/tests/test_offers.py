@@ -163,3 +163,28 @@ def test_export_draft_offer_returns_400(client, auth_headers, db):
 def test_export_nonexistent_offer_returns_404(client, auth_headers):
     r = client.get("/api/offers/999/export", headers=auth_headers)
     assert r.status_code == 404
+
+
+def test_get_offer_includes_insights_field(client, auth_headers, db):
+    offer = Offer(tenant_id=1, semester="2026-2", status="draft", insights=None)
+    db.add(offer)
+    db.commit()
+    r = client.get(f"/api/offers/{offer.id}", headers=auth_headers)
+    assert r.status_code == 200
+    data = r.json()
+    assert "insights" in data
+    assert data["insights"] is None
+
+
+def test_get_offer_returns_insights_when_set(client, auth_headers, db):
+    test_insights = [
+        {"type": "stat", "severity": None, "key": "courses_assigned",
+         "title": "Cursos asignados", "value": 5, "items": None}
+    ]
+    offer = Offer(tenant_id=1, semester="2026-2", status="draft", insights=test_insights)
+    db.add(offer)
+    db.commit()
+    r = client.get(f"/api/offers/{offer.id}", headers=auth_headers)
+    assert r.status_code == 200
+    data = r.json()
+    assert data["insights"] == test_insights

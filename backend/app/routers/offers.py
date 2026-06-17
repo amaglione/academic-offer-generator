@@ -62,6 +62,7 @@ def get_offer(offer_id: int, current_user: User = Depends(get_current_user), db:
         id=offer.id, semester=offer.semester, generated_at=offer.generated_at,
         status=offer.status,
         courses=[_enrich_course(c, db) for c in courses],
+        insights=offer.insights,
     )
 
 

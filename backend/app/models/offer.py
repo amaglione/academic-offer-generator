@@ -10,6 +10,7 @@ class Offer(Base):
     semester = Column(String, nullable=False)
     generated_at = Column(DateTime, default=datetime.utcnow)
     status = Column(String, default="draft")  # draft | published
+    insights = Column(JSON, nullable=True)
 
 
 class Course(Base):

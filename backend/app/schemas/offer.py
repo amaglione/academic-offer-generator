@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List, Optional, Any
 from datetime import datetime
 
 
@@ -24,6 +24,7 @@ class OfferSchema(BaseModel):
     generated_at: datetime
     status: str
     courses: List[CourseSchema] = []
+    insights: Optional[List[Any]] = None
 
 
 class OfferListItem(BaseModel):
