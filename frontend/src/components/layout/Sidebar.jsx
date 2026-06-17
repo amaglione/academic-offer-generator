@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom'
-import { Calendar, Settings, GraduationCap } from 'lucide-react'
+import { Calendar, Settings, GraduationCap, BookOpen } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { Button } from '@/components/ui/button'
 
@@ -33,6 +33,7 @@ export default function Sidebar() {
 
       <nav className="flex-1 p-3 space-y-1">
         {navItem('/', Calendar, 'Calendario')}
+        {navItem('/careers', BookOpen, 'Carreras')}
         {navItem('/parameters', Settings, 'Parámetros')}
       </nav>
 
