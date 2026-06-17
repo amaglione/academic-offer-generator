@@ -4,7 +4,7 @@ from app.database import get_db
 from app.dependencies import get_current_user
 from app.models.tenant import User
 from app.models.offer import Offer, Course
-from app.models.academic import Subject, Professor
+from app.models.academic import Subject, Professor, Career, ProfessorSubject
 from app.schemas.offer import OfferSchema, OfferListItem, CourseSchema, CourseUpdate
 
 router = APIRouter()
@@ -13,15 +13,26 @@ router = APIRouter()
 def _enrich_course(course: Course, db: Session) -> CourseSchema:
     subject = db.query(Subject).filter(Subject.id == course.subject_id).first()
     professor = db.query(Professor).filter(Professor.id == course.professor_id).first()
+    career = db.query(Career).filter(Career.id == subject.career_id).first() if subject else None
+    eligible = (
+        db.query(Professor)
+        .join(ProfessorSubject, ProfessorSubject.professor_id == Professor.id)
+        .filter(ProfessorSubject.subject_id == course.subject_id)
+        .all()
+    )
     return CourseSchema(
         id=course.id,
         subject_id=course.subject_id,
         subject_name=subject.name if subject else None,
+        career_id=subject.career_id if subject else None,
+        career_name=career.name if career else None,
+        year=subject.year if subject else None,
         professor_id=course.professor_id,
         professor_name=professor.name if professor else None,
         time_slot=course.time_slot,
         expected_students=course.expected_students,
         manually_modified=course.manually_modified,
+        eligible_professors=[{"id": p.id, "name": p.name} for p in eligible],
     )
 
 

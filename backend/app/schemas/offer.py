@@ -7,11 +7,15 @@ class CourseSchema(BaseModel):
     id: int
     subject_id: int
     subject_name: Optional[str] = None
+    career_id: Optional[int] = None
+    career_name: Optional[str] = None
+    year: Optional[int] = None
     professor_id: int
     professor_name: Optional[str] = None
     time_slot: dict
     expected_students: int
     manually_modified: bool
+    eligible_professors: List[dict] = []
 
 
 class OfferSchema(BaseModel):
