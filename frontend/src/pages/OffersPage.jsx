@@ -48,10 +48,20 @@ export default function OffersPage() {
         c.id !== courseId &&
         c.professor_id === course.professor_id &&
         c.time_slot?.day === newSlot.day &&
-        c.time_slot?.start_hour === newSlot.start_hour
+        c.time_slot?.turno_id === newSlot.turno_id
       )
       if (conflict) {
         toast.error(`${course.professor_name} ya tiene un curso en esa franja`)
+        return
+      }
+
+      const coursesInSlot = offer.courses.filter(c =>
+        c.id !== courseId &&
+        c.time_slot?.day === newSlot.day &&
+        c.time_slot?.turno_id === newSlot.turno_id
+      )
+      if (coursesInSlot.length >= params.available_classrooms) {
+        toast.error('No hay aulas disponibles en esa franja')
         return
       }
     }
