@@ -61,3 +61,19 @@ def test_generate_time_slots_function():
     assert slots[0]["duration_hours"] == 4
     assert slots[1]["day"] == 5
     assert slots[1]["day_name"] == "Sábado"
+
+
+def test_save_turnos_override(client, auth_headers):
+    custom_turnos = [
+        {"id": 1, "name": "Mañana", "start_hour": 9, "end_hour": 13, "days": [0, 1, 5]},
+    ]
+    r = client.put("/api/parameters", headers=auth_headers, json={"turnos": custom_turnos})
+    assert r.status_code == 200
+    data = r.json()
+    assert data["turnos"] == custom_turnos
+    # 1 turno × 3 days = 3 slots
+    assert len(data["time_slots"]) == 3
+    assert data["time_slots"][0]["turno_name"] == "Mañana"
+    assert data["time_slots"][0]["start_hour"] == 9
+    assert data["time_slots"][2]["day"] == 5
+    assert data["time_slots"][2]["day_name"] == "Sábado"

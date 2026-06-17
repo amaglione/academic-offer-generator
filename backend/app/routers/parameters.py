@@ -21,6 +21,6 @@ def update_parameters(
     db: Session = Depends(get_db),
 ):
     updates = body.model_dump(exclude_none=True)
-    if "time_slots" in updates:
-        updates["time_slots"] = [s.model_dump() for s in body.time_slots]
+    if "turnos" in updates:
+        updates["turnos"] = [t.model_dump() for t in body.turnos]
     return save_tenant_parameters(db, current_user.tenant_id, updates)
