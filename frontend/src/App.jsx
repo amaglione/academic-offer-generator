@@ -1,13 +1,10 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import { AuthProvider, useAuth } from './context/AuthContext'
-import LoginPage from './pages/LoginPage'
-import OffersPage from './pages/OffersPage'
-import ParametersPage from './pages/ParametersPage'
-
-function ProtectedRoute({ children }) {
-  const { user } = useAuth()
-  return user ? children : <Navigate to="/login" />
-}
+import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { AuthProvider } from '@/context/AuthContext'
+import { Toaster } from '@/components/ui/sonner'
+import AppShell from '@/components/layout/AppShell'
+import LoginPage from '@/pages/LoginPage'
+import OffersPage from '@/pages/OffersPage'
+import ParametersPage from '@/pages/ParametersPage'
 
 export default function App() {
   return (
@@ -15,9 +12,12 @@ export default function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
-          <Route path="/" element={<ProtectedRoute><OffersPage /></ProtectedRoute>} />
-          <Route path="/parameters" element={<ProtectedRoute><ParametersPage /></ProtectedRoute>} />
+          <Route element={<AppShell />}>
+            <Route path="/" element={<OffersPage />} />
+            <Route path="/parameters" element={<ParametersPage />} />
+          </Route>
         </Routes>
+        <Toaster />
       </BrowserRouter>
     </AuthProvider>
   )
