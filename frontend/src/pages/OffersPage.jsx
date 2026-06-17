@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { RefreshCw, Check, Loader2, AlertCircle, Download, RotateCcw } from 'lucide-react'
+import { RefreshCw, Check, Loader2, AlertCircle, Download, RotateCcw, BarChart2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useOffer } from '@/hooks/useOffer'
 import { useParameters } from '@/hooks/useParameters'
@@ -7,6 +7,7 @@ import CalendarGrid from '@/components/calendar/CalendarGrid'
 import CareerFilter from '@/components/shared/CareerFilter'
 import StatusBadge from '@/components/shared/StatusBadge'
 import CourseEditModal from '@/components/calendar/CourseEditModal'
+import InsightsDrawer from '@/components/offers/InsightsDrawer'
 import { Button } from '@/components/ui/button'
 import {
   AlertDialog,
@@ -26,6 +27,7 @@ export default function OffersPage() {
   const [editingCourse, setEditingCourse] = useState(null)
   const [confirmRegenerate, setConfirmRegenerate] = useState(false)
   const [confirmReopen, setConfirmReopen] = useState(false)
+  const [showInsights, setShowInsights] = useState(false)
 
   const careers = [
     ...new Map(
@@ -101,6 +103,13 @@ export default function OffersPage() {
 
         <div className="flex items-center gap-2 flex-wrap">
           <CareerFilter careers={careers} selected={selectedCareerIds} onChange={setSelectedCareerIds} />
+
+          {offer && (
+            <Button variant="outline" size="sm" onClick={() => setShowInsights(true)}>
+              <BarChart2 className="h-3.5 w-3.5 mr-1.5" />
+              Ver resumen
+            </Button>
+          )}
 
           {noOffer && (
             <Button size="sm" onClick={handleGenerate} disabled={generating}>
@@ -217,6 +226,14 @@ export default function OffersPage() {
           allCourses={offer.courses}
           onClose={() => setEditingCourse(null)}
           onSave={updates => patchCourse(editingCourse.id, updates)}
+        />
+      )}
+
+      {/* Insights drawer */}
+      {showInsights && (
+        <InsightsDrawer
+          insights={offer?.insights ?? null}
+          onClose={() => setShowInsights(false)}
         />
       )}
     </div>
