@@ -27,6 +27,7 @@ def db():
         active=True,
     ))
     session.add(GlobalParameters(id=1))
+    session.add(Career(id=1, tenant_id=1, name="Test Career"))
     session.commit()
 
     def override_get_db():
