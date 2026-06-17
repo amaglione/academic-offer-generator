@@ -3,7 +3,14 @@ import { DndContext, DragOverlay, PointerSensor, useSensor, useSensors } from '@
 import CourseCard from './CourseCard'
 import SlotCell from './SlotCell'
 
-const DAY_NAMES = ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes']
+const ALL_DAYS = [
+  { index: 0, name: 'Lunes' },
+  { index: 1, name: 'Martes' },
+  { index: 2, name: 'Miércoles' },
+  { index: 3, name: 'Jueves' },
+  { index: 4, name: 'Viernes' },
+  { index: 5, name: 'Sábado' },
+]
 
 export default function CalendarGrid({ courses, timeSlots, selectedCareerIds, onCourseClick, onCourseDrop, draggable }) {
   const [activeCourse, setActiveCourse] = useState(null)
@@ -16,14 +23,27 @@ export default function CalendarGrid({ courses, timeSlots, selectedCareerIds, on
     ? courses
     : courses.filter(c => selectedCareerIds.includes(c.career_id))
 
+  // Index courses by turno_id-day key
   const bySlot = {}
   for (const c of filtered) {
-    const key = `${c.time_slot?.day}-${c.time_slot?.start_hour}`
+    const key = `${c.time_slot?.turno_id}-${c.time_slot?.day}`
     if (!bySlot[key]) bySlot[key] = []
     bySlot[key].push(c)
   }
 
-  const uniqueHours = [...new Set(timeSlots.map(s => s.start_hour))].sort((a, b) => a - b)
+  // Unique turnos preserving order
+  const seenTurnos = new Set()
+  const uniqueTurnos = []
+  for (const slot of timeSlots) {
+    if (!seenTurnos.has(slot.turno_id)) {
+      seenTurnos.add(slot.turno_id)
+      uniqueTurnos.push({ id: slot.turno_id, name: slot.turno_name, start_hour: slot.start_hour, end_hour: slot.end_hour })
+    }
+  }
+
+  // Days that appear in at least one slot
+  const enabledDays = new Set(timeSlots.map(s => s.day))
+  const visibleDays = ALL_DAYS.filter(d => enabledDays.has(d.index))
 
   function handleDragStart(e) {
     setActiveCourse(e.active.data.current)
@@ -33,12 +53,12 @@ export default function CalendarGrid({ courses, timeSlots, selectedCareerIds, on
     setActiveCourse(null)
     const { active, over } = e
     if (!over) return
-    const [dayStr, hourStr] = over.id.split('-')
+    const [turnoIdStr, dayStr] = over.id.split('-')
+    const turnoId = parseInt(turnoIdStr)
     const day = parseInt(dayStr)
-    const startHour = parseInt(hourStr)
     const course = active.data.current
-    if (day === course.time_slot?.day && startHour === course.time_slot?.start_hour) return
-    const slot = timeSlots.find(s => s.day === day && s.start_hour === startHour)
+    if (turnoId === course.time_slot?.turno_id && day === course.time_slot?.day) return
+    const slot = timeSlots.find(s => s.turno_id === turnoId && s.day === day)
     if (slot) onCourseDrop(course.id, slot)
   }
 
@@ -48,32 +68,36 @@ export default function CalendarGrid({ courses, timeSlots, selectedCareerIds, on
         <table className="w-full border-collapse">
           <thead>
             <tr className="bg-gray-50 border-b border-gray-200">
-              <th className="w-16 p-3 border-r border-gray-200" />
-              {DAY_NAMES.map(d => (
-                <th key={d} className="p-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide border-r border-gray-200">
-                  {d}
+              <th className="w-36 p-3 border-r border-gray-200" />
+              {visibleDays.map(d => (
+                <th key={d.index} className="p-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide border-r border-gray-200">
+                  {d.name}
                 </th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {uniqueHours.map(startHour => (
-              <tr key={startHour} className="border-t border-gray-100">
-                <td className="p-2 text-right text-xs font-medium text-gray-400 border-r border-gray-200 align-top whitespace-nowrap">
-                  {startHour}:00
+            {uniqueTurnos.map(turno => (
+              <tr key={turno.id} className="border-t border-gray-100">
+                <td className="p-2 text-right border-r border-gray-200 align-top">
+                  <span className="text-xs font-medium text-gray-600 block">{turno.name}</span>
+                  <span className="text-xs text-gray-400">{turno.start_hour}:00–{turno.end_hour}:00</span>
                 </td>
-                {[0, 1, 2, 3, 4].map(day => (
-                  <SlotCell key={day} day={day} startHour={startHour}>
-                    {(bySlot[`${day}-${startHour}`] || []).map(course => (
-                      <CourseCard
-                        key={course.id}
-                        course={course}
-                        onClick={onCourseClick}
-                        draggable={draggable}
-                      />
-                    ))}
-                  </SlotCell>
-                ))}
+                {visibleDays.map(d => {
+                  const slotExists = timeSlots.some(s => s.turno_id === turno.id && s.day === d.index)
+                  return (
+                    <SlotCell key={d.index} turnoId={turno.id} day={d.index} disabled={!slotExists || !draggable}>
+                      {(bySlot[`${turno.id}-${d.index}`] || []).map(course => (
+                        <CourseCard
+                          key={course.id}
+                          course={course}
+                          onClick={onCourseClick}
+                          draggable={draggable && slotExists}
+                        />
+                      ))}
+                    </SlotCell>
+                  )
+                })}
               </tr>
             ))}
           </tbody>
