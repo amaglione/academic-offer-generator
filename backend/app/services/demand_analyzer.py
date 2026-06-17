@@ -44,6 +44,7 @@ def analyze_demand(
             "demand": eligible_count,
             "num_courses": num_courses,
             "eligible_professor_ids": eligible_prof_ids,
+            "allowed_turnos": subject.get("allowed_turnos"),
         })
 
     return result

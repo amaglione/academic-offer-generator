@@ -25,6 +25,7 @@ def run_optimizer(
                 "career_id": item["career_id"],
                 "eligible_professor_ids": set(item["eligible_professor_ids"]),
                 "expected_students": min(students_each, params["max_students_per_course"]),
+                "allowed_turnos": item.get("allowed_turnos"),
             })
 
     num_courses = len(courses)
@@ -35,11 +36,14 @@ def run_optimizer(
     # x[c, p, s] = 1 if course c is taught by professor p at slot s
     x = {}
     for c, course in enumerate(courses):
+        allowed_turnos = course.get("allowed_turnos")
         for prof_id in course["eligible_professor_ids"]:
             if prof_id not in prof_by_id:
                 continue
             p = prof_by_id[prof_id]
-            for s in range(num_slots):
+            for s, slot in enumerate(time_slots):
+                if allowed_turnos and slot["turno_id"] not in allowed_turnos:
+                    continue
                 x[c, p, s] = model.NewBoolVar(f"x_{c}_{p}_{s}")
 
     # Each course assigned to exactly one (professor, slot)
@@ -53,6 +57,17 @@ def run_optimizer(
         ]
         if vars_for_course:
             model.AddExactlyOne(vars_for_course)
+        else:
+            # No valid (professor, slot) combination exists for this course —
+            # treat the entire problem as infeasible immediately.
+            return {
+                "status": "infeasible",
+                "assignments": [],
+                "unassigned_subjects": [
+                    {"subject_id": c2["subject_id"], "reason": "No feasible assignment"}
+                    for c2 in courses
+                ],
+            }
 
     # Professor can't teach two courses in the same slot
     for p in range(num_professors):

@@ -95,3 +95,67 @@ def test_patch_turnos_404_wrong_tenant(client, auth_headers, db):
     db.commit()
     r = client.patch("/api/careers/subjects/32/turnos", headers=auth_headers, json={"allowed_turnos": [1]})
     assert r.status_code == 404
+
+
+def test_optimizer_respects_allowed_turnos():
+    from app.services.optimizer import run_optimizer
+
+    # Slot único: solo turno_id=1 (Mañana). La materia tiene allowed_turnos=[2].
+    # Sin el filtro, el optimizador asigna el único slot disponible (turno_id=1)
+    # y el status sería "optimal". Con el filtro no hay slots válidos → "infeasible".
+    time_slots = [
+        {"id": 0, "turno_id": 1, "turno_name": "Mañana", "day": 0, "day_name": "Lunes", "start_hour": 8, "end_hour": 12, "duration_hours": 4},
+    ]
+    professors = [{"id": 1, "name": "Prof A"}]
+    demand = [{
+        "subject_id": 1,
+        "name": "Álgebra",
+        "year": 1,
+        "career_id": 1,
+        "demand": 5,
+        "num_courses": 1,
+        "eligible_professor_ids": [1],
+        "allowed_turnos": [2],  # solo turno_id=2, pero no hay slots de ese turno
+    }]
+    params = {
+        "max_students_per_course": 40,
+        "max_weekly_hours_per_professor": 30,
+        "available_classrooms": 10,
+        "solver_timeout_seconds": 10,
+    }
+    result = run_optimizer(demand, professors, time_slots, params)
+    # Con el filtro, no hay slots válidos → infeasible (no puede asignar el turno prohibido)
+    assert result["status"] == "infeasible"
+    assert len(result["assignments"]) == 0
+
+
+def test_optimizer_allowed_turnos_assigns_correct_slot():
+    from app.services.optimizer import run_optimizer
+
+    # Dos slots: turno_id=1 y turno_id=2. La materia sólo puede ir a turno_id=2.
+    time_slots = [
+        {"id": 0, "turno_id": 1, "turno_name": "Mañana", "day": 0, "day_name": "Lunes", "start_hour": 8, "end_hour": 12, "duration_hours": 4},
+        {"id": 1, "turno_id": 2, "turno_name": "Tarde", "day": 0, "day_name": "Lunes", "start_hour": 14, "end_hour": 18, "duration_hours": 4},
+    ]
+    professors = [{"id": 1, "name": "Prof A"}]
+    demand = [{
+        "subject_id": 1,
+        "name": "Álgebra",
+        "year": 1,
+        "career_id": 1,
+        "demand": 5,
+        "num_courses": 1,
+        "eligible_professor_ids": [1],
+        "allowed_turnos": [2],  # solo turno tarde (id=2)
+    }]
+    params = {
+        "max_students_per_course": 40,
+        "max_weekly_hours_per_professor": 30,
+        "available_classrooms": 10,
+        "solver_timeout_seconds": 10,
+    }
+    result = run_optimizer(demand, professors, time_slots, params)
+    assert result["status"] in ("optimal", "feasible")
+    assert len(result["assignments"]) == 1
+    # La materia debe estar en turno_id=2 (Tarde), no en turno_id=1 (Mañana)
+    assert result["assignments"][0]["time_slot"]["turno_id"] == 2
