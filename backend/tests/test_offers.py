@@ -85,3 +85,8 @@ def test_reopen_draft_offer_returns_400(client, auth_headers, db):
 
     r = client.post(f"/api/offers/{offer.id}/reopen", headers=auth_headers)
     assert r.status_code == 400
+
+
+def test_reopen_nonexistent_offer_returns_404(client, auth_headers):
+    r = client.post("/api/offers/999/reopen", headers=auth_headers)
+    assert r.status_code == 404
