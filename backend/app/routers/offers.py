@@ -114,24 +114,22 @@ def export_offer(offer_id: int, current_user: User = Depends(get_current_user), 
     courses = db.query(Course).filter(Course.offer_id == offer_id).all()
     courses_data = []
     for course in courses:
-        subject = db.query(Subject).filter(Subject.id == course.subject_id).first()
-        professor = db.query(Professor).filter(Professor.id == course.professor_id).first()
-        career = db.query(Career).filter(Career.id == subject.career_id).first() if subject else None
+        enriched = _enrich_course(course, db)
         courses_data.append({
-            "subject_id": course.subject_id,
-            "subject_name": subject.name if subject else None,
-            "career_id": subject.career_id if subject else None,
-            "career_name": career.name if career else None,
-            "year": subject.year if subject else None,
-            "professor_id": course.professor_id,
-            "professor_name": professor.name if professor else None,
-            "time_slot": course.time_slot,
-            "expected_students": course.expected_students,
-            "manually_modified": course.manually_modified,
+            "subject_id": enriched.subject_id,
+            "subject_name": enriched.subject_name,
+            "career_id": enriched.career_id,
+            "career_name": enriched.career_name,
+            "year": enriched.year,
+            "professor_id": enriched.professor_id,
+            "professor_name": enriched.professor_name,
+            "time_slot": enriched.time_slot,
+            "expected_students": enriched.expected_students,
+            "manually_modified": enriched.manually_modified,
         })
     return {
         "semester": offer.semester,
-        "generated_at": offer.generated_at.isoformat(),
+        "generated_at": offer.generated_at.isoformat() if offer.generated_at else None,
         "status": offer.status,
         "courses": courses_data,
     }

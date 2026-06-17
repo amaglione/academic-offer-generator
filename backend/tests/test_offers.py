@@ -131,3 +131,8 @@ def test_export_draft_offer_returns_400(client, auth_headers, db):
 
     r = client.get(f"/api/offers/{offer.id}/export", headers=auth_headers)
     assert r.status_code == 400
+
+
+def test_export_nonexistent_offer_returns_404(client, auth_headers):
+    r = client.get("/api/offers/999/export", headers=auth_headers)
+    assert r.status_code == 404
