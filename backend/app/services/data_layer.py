@@ -4,7 +4,16 @@ from app.models.academic import Career, Subject, Prerequisite, Professor, Profes
 
 def get_subjects(db: Session, tenant_id: int) -> list[dict]:
     subjects = db.query(Subject).filter(Subject.tenant_id == tenant_id).all()
-    return [{"id": s.id, "name": s.name, "year": s.year, "career_id": s.career_id} for s in subjects]
+    return [
+        {
+            "id": s.id,
+            "name": s.name,
+            "year": s.year,
+            "career_id": s.career_id,
+            "allowed_turnos": s.allowed_turnos,
+        }
+        for s in subjects
+    ]
 
 
 def get_prerequisites(db: Session) -> dict[int, list[int]]:

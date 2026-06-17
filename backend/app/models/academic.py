@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Boolean, ForeignKey
+from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, JSON
 from app.database import Base
 
 
@@ -16,6 +16,7 @@ class Subject(Base):
     career_id = Column(Integer, ForeignKey("careers.id"), nullable=False)
     name = Column(String, nullable=False)
     year = Column(Integer, nullable=False)
+    allowed_turnos = Column(JSON, nullable=True)
 
 
 class Prerequisite(Base):
