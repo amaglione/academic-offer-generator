@@ -1,7 +1,7 @@
-import { useState, useMemo } from 'react'
+import { useMemo } from 'react'
 import { BookOpen, ChevronRight, Loader2 } from 'lucide-react'
 import { useCareers } from '@/hooks/useCareers'
-import { useCareerSubjects } from '@/hooks/useCareerSubjects'
+import { useState } from 'react'
 
 function TurnosBadge({ allowedTurnos, turnos }) {
   if (!allowedTurnos || allowedTurnos.length === 0) {
@@ -19,11 +19,16 @@ function TurnosBadge({ allowedTurnos, turnos }) {
   )
 }
 
-export default function CareersPage({ params, onSelectSubject }) {
+export default function CareersPage({
+  params,
+  subjects,
+  subjectsLoading,
+  selectedCareerId,
+  onSelectCareer,
+  onSelectSubject,
+}) {
   const { careers } = useCareers()
-  const [selectedCareerId, setSelectedCareerId] = useState(null)
   const [search, setSearch] = useState('')
-  const { subjects, loading } = useCareerSubjects(selectedCareerId)
 
   const filteredCareers = careers.filter(c =>
     c.name.toLowerCase().includes(search.toLowerCase())
@@ -31,7 +36,7 @@ export default function CareersPage({ params, onSelectSubject }) {
 
   const subjectsByYear = useMemo(() => {
     const grouped = {}
-    for (const s of subjects) {
+    for (const s of subjects || []) {
       if (!grouped[s.year]) grouped[s.year] = []
       grouped[s.year].push(s)
     }
@@ -58,7 +63,7 @@ export default function CareersPage({ params, onSelectSubject }) {
           {filteredCareers.map(c => (
             <button
               key={c.id}
-              onClick={() => { setSelectedCareerId(c.id); onSelectSubject && onSelectSubject(null) }}
+              onClick={() => onSelectCareer(c.id)}
               className={[
                 'w-full text-left px-3 py-2 rounded-lg text-sm transition-colors',
                 selectedCareerId === c.id
@@ -82,11 +87,11 @@ export default function CareersPage({ params, onSelectSubject }) {
             <BookOpen className="h-12 w-12 mb-3 opacity-30" />
             <p className="text-sm">Seleccioná una carrera</p>
           </div>
-        ) : loading ? (
+        ) : subjectsLoading ? (
           <div className="flex items-center justify-center h-full">
             <Loader2 className="h-6 w-6 animate-spin text-gray-300" />
           </div>
-        ) : subjects.length === 0 ? (
+        ) : (subjects || []).length === 0 ? (
           <div className="flex items-center justify-center h-full text-gray-400">
             <p className="text-sm">Sin materias</p>
           </div>
@@ -106,7 +111,7 @@ export default function CareersPage({ params, onSelectSubject }) {
                       {subs.map((s, i) => (
                         <tr
                           key={s.id}
-                          onClick={() => onSelectSubject && onSelectSubject(s)}
+                          onClick={() => onSelectSubject(s)}
                           className={[
                             'cursor-pointer transition-colors hover:bg-gray-50',
                             i > 0 ? 'border-t border-gray-100' : '',

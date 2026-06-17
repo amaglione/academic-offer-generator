@@ -7,16 +7,35 @@ import LoginPage from '@/pages/LoginPage'
 import OffersPage from '@/pages/OffersPage'
 import ParametersPage from '@/pages/ParametersPage'
 import CareersPage from '@/pages/CareersPage'
+import SubjectPanel from '@/components/careers/SubjectPanel'
 import { useParameters } from '@/hooks/useParameters'
+import { useCareerSubjects } from '@/hooks/useCareerSubjects'
 
 function CareersRoute() {
   const { params } = useParameters()
+  const [selectedCareerId, setSelectedCareerId] = useState(null)
   const [selectedSubject, setSelectedSubject] = useState(null)
+  const { subjects, loading, updateSubject } = useCareerSubjects(selectedCareerId)
+
   return (
-    <CareersPage
-      params={params}
-      onSelectSubject={setSelectedSubject}
-    />
+    <>
+      <CareersPage
+        params={params}
+        subjects={subjects}
+        subjectsLoading={loading}
+        selectedCareerId={selectedCareerId}
+        onSelectCareer={id => { setSelectedCareerId(id); setSelectedSubject(null) }}
+        onSelectSubject={setSelectedSubject}
+      />
+      {selectedSubject && (
+        <SubjectPanel
+          subject={subjects.find(s => s.id === selectedSubject.id) ?? selectedSubject}
+          turnos={params?.turnos || []}
+          onClose={() => setSelectedSubject(null)}
+          onUpdate={updated => updateSubject(updated)}
+        />
+      )}
+    </>
   )
 }
 
