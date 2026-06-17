@@ -20,3 +20,4 @@ frontend/dist/
 .claude/
 .superpowers/
 .DS_Store
+backend/test.db
