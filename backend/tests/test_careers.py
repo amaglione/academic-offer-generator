@@ -1,4 +1,4 @@
-from app.models.academic import Subject, Professor, ProfessorSubject
+from app.models.academic import Subject
 
 
 def test_subject_allowed_turnos_defaults_null(db):
