@@ -1,6 +1,6 @@
 # Offer Management — Fix Carreras, Reabrir, Validaciones y Export
 
-**Fecha:** 2026-06-17
+**Fecha:** 2026-06-14
 **Estado:** Aprobado por usuario
 
 ---

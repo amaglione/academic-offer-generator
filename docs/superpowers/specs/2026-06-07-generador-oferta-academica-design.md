@@ -1,6 +1,6 @@
 # Generador Automático de Oferta Académica — Diseño
 
-**Fecha:** 2026-06-16  
+**Fecha:** 2026-06-07  
 **Estado:** Revisado — pendiente de aprobación final
 
 ---

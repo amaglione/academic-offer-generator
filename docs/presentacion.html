@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Generador de Oferta Académica</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:     #080f1e;
+  --bg2:    #0d1829;
+  --card:   #0f1f35;
+  --card2:  #132340;
+  --border: #1a3050;
+  --blue:   #4f8ef7;
+  --blue2:  #76aaf9;
+  --glow:   rgba(79,142,247,.18);
+  --yellow: #f5c842;
+  --green:  #34d399;
+  --red:    #f87171;
+  --amber:  #fbbf24;
+  --muted:  #4a6080;
+  --sub:    #7a9cc0;
+  --text:   #cddcee;
+  --white:  #ffffff;
+}
+
+html, body { height: 100%; overflow: hidden; }
+
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Slide system ── */
+.deck { width: 100vw; height: 100vh; position: relative; }
+
+.slide {
+  position: absolute; inset: 0;
+  opacity: 0; pointer-events: none;
+  transition: opacity .45s cubic-bezier(.4,0,.2,1);
+  display: grid;
+}
+.slide.active { opacity: 1; pointer-events: all; }
+
+/* ── Background decorations ── */
+.glow-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  pointer-events: none;
+}
+
+/* ══════════════════════════════════════
+   SLIDE 1 — TÍTULO
+══════════════════════════════════════ */
+#s0 {
+  grid-template-columns: 1fr 1fr;
+}
+
+.s0-left {
+  display: flex; flex-direction: column; justify-content: center;
+  padding: 72px 64px 72px 80px;
+  position: relative; overflow: hidden;
+  background: linear-gradient(145deg, #0e1e40 0%, #091328 70%);
+  border-right: 1px solid var(--border);
+}
+
+.s0-orb1 {
+  position: absolute; width: 400px; height: 400px;
+  background: radial-gradient(circle, rgba(79,142,247,.22) 0%, transparent 70%);
+  bottom: -100px; right: -100px; pointer-events: none;
+}
+.s0-orb2 {
+  position: absolute; width: 250px; height: 250px;
+  background: radial-gradient(circle, rgba(245,200,66,.08) 0%, transparent 70%);
+  top: -60px; left: -60px; pointer-events: none;
+}
+
+.s0-logo {
+  width: 76px; height: 76px;
+  background: linear-gradient(135deg, #1a3a6e 0%, #0d2348 100%);
+  border: 1px solid rgba(79,142,247,.4);
+  border-radius: 18px;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 36px;
+  box-shadow: 0 0 30px rgba(79,142,247,.15), inset 0 1px 0 rgba(255,255,255,.08);
+}
+
+.s0-mvp {
+  display: inline-flex; align-items: center; gap: 7px;
+  background: rgba(245,200,66,.1);
+  border: 1px solid rgba(245,200,66,.3);
+  color: var(--yellow);
+  font-size: .75rem; font-weight: 800; letter-spacing: .16em;
+  padding: 5px 16px; border-radius: 999px;
+  margin-bottom: 22px;
+}
+.s0-mvp-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--yellow); opacity: .7; }
+
+.s0-left h1 {
+  font-size: 3.4rem; font-weight: 900; line-height: 1.05;
+  letter-spacing: -.03em; color: var(--white);
+  margin-bottom: 24px;
+}
+.s0-left h1 span { color: var(--blue); }
+
+.s0-desc {
+  font-size: .98rem; color: var(--sub); line-height: 1.75;
+  margin-bottom: 44px; max-width: 400px;
+}
+
+.s0-author-line { display: flex; align-items: center; gap: 14px; }
+.s0-author-av {
+  width: 42px; height: 42px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--blue) 0%, #1d4ed8 100%);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem; font-weight: 800; color: #fff;
+  flex-shrink: 0;
+}
+.s0-author-name { font-size: .95rem; font-weight: 700; color: var(--white); }
+.s0-author-sub  { font-size: .8rem; color: var(--sub); margin-top: 2px; }
+
+/* Right side of title */
+.s0-right {
+  display: flex; flex-direction: column; justify-content: center;
+  padding: 72px 80px 72px 64px;
+  position: relative;
+}
+
+.s0-right-label {
+  font-size: .7rem; font-weight: 800; letter-spacing: .16em;
+  color: var(--muted); text-transform: uppercase;
+  margin-bottom: 22px;
+}
+
+.kw-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+.kw {
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--sub);
+  font-size: .82rem; font-weight: 600;
+  padding: 8px 18px; border-radius: 10px;
+  transition: border-color .2s, color .2s;
+}
+.kw:hover { border-color: var(--blue); color: var(--blue2); }
+
+/* ══════════════════════════════════════
+   CONTENT SLIDES — shared layout
+══════════════════════════════════════ */
+.content-slide {
+  display: flex;
+  padding: 0;
+}
+
+.slide-sidebar {
+  width: 6px;
+  background: linear-gradient(180deg, var(--blue) 0%, transparent 100%);
+  flex-shrink: 0;
+}
+
+.slide-body {
+  flex: 1;
+  padding: 56px 80px 48px;
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+
+.slide-head { margin-bottom: 36px; }
+.slide-head h2 {
+  font-size: 2.2rem; font-weight: 800;
+  color: var(--white); letter-spacing: -.025em;
+  margin-bottom: 10px;
+}
+.slide-head .eyebrow {
+  font-size: .72rem; font-weight: 800; letter-spacing: .18em;
+  color: var(--blue); text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+/* ══════════════════════════════════════
+   SLIDE 2 — PROBLEMA
+══════════════════════════════════════ */
+.prob-list { display: flex; flex-direction: column; gap: 16px; flex: 1; justify-content: center; }
+
+.prob-card {
+  display: flex; align-items: flex-start; gap: 22px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 24px 28px;
+  position: relative; overflow: hidden;
+  transition: border-color .2s;
+}
+.prob-card::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(90deg, rgba(79,142,247,.06) 0%, transparent 60%);
+  pointer-events: none;
+}
+.prob-card:hover { border-color: rgba(79,142,247,.4); }
+
+.prob-icon-wrap {
+  width: 52px; height: 52px; flex-shrink: 0;
+  background: linear-gradient(135deg, #0d2040, #091629);
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.5rem;
+}
+.prob-text h3 { font-size: 1.05rem; font-weight: 700; color: var(--white); margin-bottom: 6px; }
+.prob-text p  { font-size: .875rem; color: var(--sub); line-height: 1.65; }
+
+/* ══════════════════════════════════════
+   SLIDE 3 — SOLUCIÓN
+══════════════════════════════════════ */
+.sol-desc {
+  background: linear-gradient(90deg, rgba(79,142,247,.08), transparent);
+  border: 1px solid rgba(79,142,247,.2);
+  border-left: 3px solid var(--blue);
+  border-radius: 10px;
+  padding: 16px 22px;
+  font-size: .9rem; color: var(--text); line-height: 1.7;
+  margin-bottom: 28px;
+  flex-shrink: 0;
+}
+
+.feat-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 48px;
+  row-gap: 0;
+  flex: 1;
+  align-content: start;
+}
+
+.feat-item {
+  display: flex; align-items: baseline; gap: 12px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--border);
+}
+.feat-item:nth-child(odd):last-child  { border-bottom: none; }
+.feat-item:nth-last-child(-n+2)       { border-bottom: none; }
+
+.feat-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--blue);
+  flex-shrink: 0;
+  margin-top: 6px;
+}
+.feat-item-name {
+  font-size: .95rem; font-weight: 700; color: var(--white);
+  margin-right: 6px;
+}
+.feat-item-desc {
+  font-size: .85rem; color: var(--sub);
+}
+
+/* ══════════════════════════════════════
+   SLIDE 4 — TECNOLOGÍAS
+══════════════════════════════════════ */
+.tech-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; flex: 1; }
+
+.tech-section-title {
+  font-size: .7rem; font-weight: 900; letter-spacing: .18em;
+  color: var(--blue); text-transform: uppercase;
+  margin-bottom: 18px;
+  display: flex; align-items: center; gap: 10px;
+}
+.tech-section-title::after {
+  content: ''; flex: 1; height: 1px; background: var(--border);
+}
+
+.tech-item {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+  gap: 16px;
+}
+.tech-item:last-child { border: none; }
+.tech-name { font-size: .9rem; font-weight: 600; color: var(--white); }
+.tech-role { font-size: .78rem; color: var(--muted); text-align: right; }
+
+/* ══════════════════════════════════════
+   SLIDE 5 — MOTOR CP-SAT
+══════════════════════════════════════ */
+.var-box {
+  background: linear-gradient(90deg, #091830, #0a1e30);
+  border: 1px solid #1a3a60;
+  border-radius: 10px;
+  padding: 14px 24px;
+  font-family: 'Consolas', 'Cascadia Code', monospace;
+  font-size: .95rem; color: var(--yellow);
+  letter-spacing: .02em;
+  margin-bottom: 24px;
+}
+.var-box strong { color: #fff; }
+
+.rules-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; flex: 1; }
+
+.rules-block-title {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: .7rem; font-weight: 900; letter-spacing: .12em;
+  padding: 5px 14px; border-radius: 999px;
+  margin-bottom: 18px;
+}
+.rbt-red    { background: rgba(248,113,113,.1); border: 1px solid rgba(248,113,113,.3); color: #fca5a5; }
+.rbt-yellow { background: rgba(251,191,36,.1);  border: 1px solid rgba(251,191,36,.3);  color: #fcd34d; }
+
+.rules-list { list-style: none; }
+.rules-list li {
+  display: flex; gap: 12px; align-items: flex-start;
+  padding: 11px 0; border-bottom: 1px solid var(--border);
+  font-size: .875rem; color: var(--text); line-height: 1.5;
+}
+.rules-list li:last-child { border: none; }
+.rdot { flex-shrink: 0; margin-top: 2px; font-size: .6rem; }
+.rdot-blue   { color: var(--blue); }
+.rdot-amber  { color: var(--amber); }
+
+.rules-note {
+  margin-top: 16px;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 10px; padding: 14px 18px;
+  font-size: .8rem; color: var(--sub); line-height: 1.6;
+}
+.rules-note strong { color: var(--white); }
+
+/* ══════════════════════════════════════
+   SLIDE 6 — CLAUDE
+══════════════════════════════════════ */
+.claude-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; flex: 1; }
+
+.col-eyebrow {
+  font-size: .68rem; font-weight: 900; letter-spacing: .18em;
+  color: var(--muted); text-transform: uppercase;
+  margin-bottom: 18px;
+  display: flex; align-items: center; gap: 10px;
+}
+.col-eyebrow::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+.skill-list { display: flex; flex-direction: column; gap: 10px; }
+.skill-row { display: flex; align-items: center; gap: 14px; }
+.skill-chip {
+  background: linear-gradient(90deg, #0e2040, #091630);
+  border: 1px solid #1a3a60;
+  color: var(--blue2);
+  font-family: 'Consolas', monospace;
+  font-size: .8rem; font-weight: 700;
+  padding: 8px 16px; border-radius: 8px;
+  min-width: 200px; letter-spacing: .02em;
+}
+.skill-label { font-size: .82rem; color: var(--sub); line-height: 1.4; }
+
+.skill-note {
+  margin-top: 18px;
+  background: rgba(245,200,66,.06);
+  border: 1px solid rgba(245,200,66,.2);
+  border-radius: 10px; padding: 12px 16px;
+  font-size: .82rem; color: var(--yellow); line-height: 1.5;
+}
+
+.bug-list { display: flex; flex-direction: column; gap: 12px; }
+.bug-item {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 10px; padding: 14px 18px;
+  font-size: .83rem; color: var(--sub); line-height: 1.55;
+  position: relative; overflow: hidden;
+}
+.bug-item code { color: var(--yellow); font-family: monospace; font-size: .85em; }
+.bug-item.b-red  { border-left: 3px solid var(--red); }
+.bug-item.b-amb  { border-left: 3px solid var(--amber); }
+.bug-item .bug-label {
+  font-size: .68rem; font-weight: 800; letter-spacing: .1em;
+  text-transform: uppercase; margin-bottom: 5px;
+}
+.bl-red  { color: var(--red); }
+.bl-amb  { color: var(--amber); }
+
+/* ══════════════════════════════════════
+   SLIDE 7 — PRÓXIMOS PASOS
+══════════════════════════════════════ */
+.next-list { display: flex; flex-direction: column; gap: 0; flex: 1; justify-content: center; }
+.next-item {
+  display: flex; align-items: flex-start; gap: 22px;
+  padding: 16px 0; border-bottom: 1px solid var(--border);
+}
+.next-item:last-child { border: none; }
+.next-num {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: linear-gradient(135deg, #1a3a6e, #0d2040);
+  border: 1px solid var(--border);
+  color: var(--blue2); font-size: .8rem; font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; margin-top: 2px;
+}
+.next-content h3 { font-size: .95rem; font-weight: 700; color: var(--white); margin-bottom: 3px; }
+.next-content p  { font-size: .85rem; color: var(--sub); line-height: 1.5; }
+
+/* ══════════════════════════════════════
+   SLIDE 8 — DEMO
+══════════════════════════════════════ */
+.demo-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; flex: 1; }
+
+.check-list { display: flex; flex-direction: column; }
+.check-item {
+  display: flex; align-items: center; gap: 16px;
+  padding: 13px 0; border-bottom: 1px solid var(--border);
+  font-size: .92rem; color: var(--text);
+}
+.check-item:last-child { border: none; }
+.check-icon {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: rgba(52,211,153,.12); border: 1px solid rgba(52,211,153,.3);
+  display: flex; align-items: center; justify-content: center;
+  font-size: .75rem; color: var(--green); flex-shrink: 0; font-weight: 900;
+}
+
+.achieve-list { display: flex; flex-direction: column; gap: 12px; }
+.achieve-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 12px; padding: 18px 22px;
+}
+.achieve-card h3 {
+  font-size: .72rem; font-weight: 900; letter-spacing: .14em;
+  text-transform: uppercase; margin-bottom: 7px;
+}
+.achieve-card p { font-size: .84rem; color: var(--sub); line-height: 1.55; }
+.ah-green { color: var(--green); }
+.ah-blue  { color: var(--blue2); }
+
+/* ══════════════════════════════════════
+   NAVIGATION
+══════════════════════════════════════ */
+.progress {
+  position: fixed; bottom: 24px; left: 50%;
+  transform: translateX(-50%);
+  display: flex; gap: 8px; z-index: 100;
+}
+.dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--border); cursor: pointer;
+  transition: background .25s, transform .25s;
+}
+.dot.active { background: var(--blue); transform: scale(1.5); }
+
+.slide-num {
+  position: fixed; top: 20px; right: 28px;
+  color: var(--muted); font-size: .78rem; font-weight: 700;
+  letter-spacing: .06em; z-index: 100;
+}
+
+.nav-hint {
+  position: fixed; bottom: 20px; right: 28px;
+  color: var(--border); font-size: .7rem; z-index: 100;
+}
+</style>
+</head>
+<body>
+<div class="deck">
+
+<!-- ══════ SLIDE 1: TÍTULO ══════ -->
+<div class="slide active" id="s0">
+  <div class="s0-left">
+    <div class="s0-orb1"></div>
+    <div class="s0-orb2"></div>
+
+    <div class="s0-logo">
+      <!-- Graduation cap SVG -->
+      <svg width="42" height="42" viewBox="0 0 42 42" fill="none">
+        <path d="M21 5L2 14.5l19 9.5 19-9.5L21 5z" fill="#4f8ef7"/>
+        <path d="M8 18.5v11C8 29.5 13 36 21 36s13-6.5 13-6.5v-11L21 27 8 18.5z" fill="#4f8ef7" opacity=".55"/>
+        <rect x="35.5" y="17" width="2.2" height="10" rx="1.1" fill="#4f8ef7" opacity=".6"/>
+        <circle cx="36.6" cy="28.5" r="2.8" fill="#f5c842"/>
+      </svg>
+    </div>
+
+    <div class="s0-mvp"><div class="s0-mvp-dot"></div>MVP</div>
+
+    <h1>Generador de<br><span>Oferta</span><br>Académica</h1>
+
+    <p class="s0-desc">
+      Sistema web para automatizar la confección<br>
+      de la oferta académica semestral mediante<br>
+      un optimizador combinatorial.<br><br>
+      <em style="color:var(--muted)">Introducción al Desarrollo de Software Asistido por IA</em>
+    </p>
+
+    <div class="s0-author-line">
+      <div class="s0-author-av">A</div>
+      <div>
+        <div class="s0-author-name">Agustín Maglione</div>
+        <div class="s0-author-sub">CEIA — UBA · 2026</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="s0-right">
+    <div class="s0-right-label">Stack tecnológico</div>
+    <div class="kw-grid">
+      <span class="kw">FastAPI</span>
+      <span class="kw">React 18</span>
+      <span class="kw">CP-SAT Solver</span>
+      <span class="kw">Google OR-Tools</span>
+      <span class="kw">SQLAlchemy 2.0</span>
+      <span class="kw">PostgreSQL</span>
+      <span class="kw">Tailwind CSS</span>
+      <span class="kw">Multi-tenant</span>
+      <span class="kw">shadcn/ui</span>
+      <span class="kw">Alembic</span>
+      <span class="kw">JWT Auth</span>
+      <span class="kw">pytest · 59 tests</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ SLIDE 2: PROBLEMA ══════ -->
+<div class="slide content-slide" id="s1">
+  <div class="slide-sidebar"></div>
+  <div class="slide-body">
+    <div class="slide-head">
+      <div class="eyebrow">Contexto</div>
+      <h2>El Problema</h2>
+    </div>
+    <div class="prob-list">
+      <div class="prob-card">
+        <div class="prob-icon-wrap">🏫</div>
+        <div class="prob-text">
+          <h3>Punto de partida: SIGEDU</h3>
+          <p>El sistema de gestión académica registra alumnos, materias aprobadas, docentes y correlatividades. Sin embargo, <strong style="color:var(--white)">no genera la oferta académica</strong> — ese proceso queda completamente a cargo del personal de manera manual cada semestre.</p>
+        </div>
+      </div>
+      <div class="prob-card">
+        <div class="prob-icon-wrap">📊</div>
+        <div class="prob-text">
+          <h3>La demanda real es difícil de estimar</h3>
+          <p>La cantidad de alumnos que puede cursar cada materia depende del historial de aprobaciones — hay que cruzar correlatividades para cada alumno activo antes de saber cuántos cursos abrir.</p>
+        </div>
+      </div>
+      <div class="prob-card">
+        <div class="prob-icon-wrap">⚠️</div>
+        <div class="prob-text">
+          <h3>Restricciones combinatoriales complejas</h3>
+          <p>Docentes con límites de horas, franjas horarias, capacidad de aulas y turnos por materia generan un espacio de soluciones enorme. Hacerlo a mano introduce errores y solapamientos.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ SLIDE 3: SOLUCIÓN ══════ -->
+<div class="slide content-slide" id="s2">
+  <div class="slide-sidebar"></div>
+  <div class="slide-body">
+    <div class="slide-head">
+      <div class="eyebrow">El sistema</div>
+      <h2>La Solución <span style="font-size:.6em;font-weight:700;color:var(--yellow);background:rgba(245,200,66,.1);border:1px solid rgba(245,200,66,.25);padding:3px 12px;border-radius:999px;vertical-align:middle;margin-left:12px;letter-spacing:.1em;">MVP</span></h2>
+    </div>
+
+    <div class="sol-desc">
+      Toma los datos de SIGEDU, calcula automáticamente cuántos alumnos pueden cursar cada materia según sus correlatividades, y ejecuta un optimizador matemático para asignar docentes y franjas horarias respetando todas las restricciones. El resultado es un <strong style="color:var(--white)">calendario editable</strong> que el personal puede ajustar antes de publicar.
+    </div>
+
+    <div class="feat-grid">
+      <div class="feat-card">
+        <div class="feat-icon">🧮</div>
+        <h3>Motor CP-SAT</h3>
+        <p>Asignación óptima de cursos con restricciones duras y blandas</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">📊</div>
+        <h3>Análisis de demanda</h3>
+        <p>Calcula alumnos elegibles considerando prerequisitos y aprobaciones</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">📅</div>
+        <h3>Calendario visual</h3>
+        <p>Vista por turnos/días con edición manual de cursos</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">⚙️</div>
+        <h3>Turnos configurables</h3>
+        <p>Parámetros globales: turnos, días, aulas, límite horario por docente</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">🎓</div>
+        <h3>Pantalla de carreras</h3>
+        <p>Materias por año con docentes habilitados y turnos por materia</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">💡</div>
+        <h3>Insights del optimizador</h3>
+        <p>Alertas de solapamientos, carga docente, materias sin asignar</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">🔐</div>
+        <h3>Login persistente</h3>
+        <p>Sesión que sobrevive reinicios del browser vía localStorage</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">🏢</div>
+        <h3>Multi-tenant</h3>
+        <p>Múltiples universidades en una sola instancia, datos completamente aislados</p>
+      </div>
+      <div class="feat-card">
+        <div class="feat-icon">📤</div>
+        <h3>Exportación</h3>
+        <p>Oferta publicada exportable como JSON estructurado</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ SLIDE 4: TECNOLOGÍAS ══════ -->
+<div class="slide content-slide" id="s3">
+  <div class="slide-sidebar"></div>
+  <div class="slide-body">
+    <div class="slide-head">
+      <div class="eyebrow">Infraestructura</div>
+      <h2>Tecnologías</h2>
+    </div>
+    <div class="tech-grid">
+      <div>
+        <div class="tech-section-title">Backend</div>
+        <div class="tech-item"><span class="tech-name">Python 3.11 + FastAPI</span><span class="tech-role">API REST</span></div>
+        <div class="tech-item"><span class="tech-name">SQLAlchemy 2.0 + Alembic</span><span class="tech-role">ORM + migraciones</span></div>
+        <div class="tech-item"><span class="tech-name">PostgreSQL</span><span class="tech-role">Base de datos</span></div>
+        <div class="tech-item"><span class="tech-name">Google OR-Tools — CP-SAT</span><span class="tech-role">Optimizador</span></div>
+        <div class="tech-item"><span class="tech-name">JWT (python-jose)</span><span class="tech-role">Autenticación</span></div>
+        <div class="tech-item"><span class="tech-name">pytest</span><span class="tech-role">59 tests</span></div>
+      </div>
+      <div>
+        <div class="tech-section-title">Frontend</div>
+        <div class="tech-item"><span class="tech-name">React 18 + Vite</span><span class="tech-role">SPA framework</span></div>
+        <div class="tech-item"><span class="tech-name">Tailwind CSS + shadcn/ui</span><span class="tech-role">Estilos y componentes</span></div>
+        <div class="tech-item"><span class="tech-name">lucide-react</span><span class="tech-role">Íconos</span></div>
+        <div class="tech-item"><span class="tech-name">axios + interceptores JWT</span><span class="tech-role">HTTP client</span></div>
+        <div class="tech-item"><span class="tech-name">sonner</span><span class="tech-role">Notificaciones toast</span></div>
+        <div class="tech-item"><span class="tech-name">localStorage</span><span class="tech-role">Sesión persistente</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ SLIDE 5: MOTOR ══════ -->
+<div class="slide content-slide" id="s4">
+  <div class="slide-sidebar"></div>
+  <div class="slide-body">
+    <div class="slide-head">
+      <div class="eyebrow">Algoritmo</div>
+      <h2>Motor de Optimización — CP-SAT</h2>
+    </div>
+    <div class="var-box">Variable de decisión: &nbsp;<strong>x[curso, docente, franja]</strong> &in; {0, 1}</div>
+    <div class="rules-grid">
+      <div>
+        <div class="rules-block-title rbt-red">RESTRICCIONES DURAS</div>
+        <ul class="rules-list">
+          <li><span class="rdot rdot-blue">●</span> Cada curso → exactamente 1 par (docente, franja)</li>
+          <li><span class="rdot rdot-blue">●</span> Un docente no puede dar 2 cursos en la misma franja</li>
+          <li><span class="rdot rdot-blue">●</span> Horas semanales por docente ≤ límite configurado</li>
+          <li><span class="rdot rdot-blue">●</span> Cursos simultáneos ≤ aulas disponibles</li>
+          <li><span class="rdot rdot-blue">●</span> Turnos permitidos por materia (allowed_turnos)</li>
+        </ul>
+      </div>
+      <div>
+        <div class="rules-block-title rbt-yellow">OBJETIVO — blandas</div>
+        <ul class="rules-list">
+          <li><span class="rdot rdot-amber">●</span> Minimizar solapamientos de materias del mismo año/carrera en la misma franja</li>
+          <li><span class="rdot rdot-amber">●</span> Balancear carga horaria entre franjas disponibles</li>
+        </ul>
+        <div class="rules-note">
+          <strong>Partial infeasibility:</strong> si una materia no tiene turno válido, el solver continúa con las demás e informa cuál quedó sin asignar y por qué.<br><br>
+          <strong>Timeout:</strong> devuelve la mejor solución encontrada hasta ese momento — status <span style="color:var(--yellow)">feasible</span> en vez de optimal.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ SLIDE 6: CLAUDE ══════ -->
+<div class="slide content-slide" id="s5">
+  <div class="slide-sidebar"></div>
+  <div class="slide-body">
+    <div class="slide-head">
+      <div class="eyebrow">Proceso</div>
+      <h2>Cómo ayudó Claude Code</h2>
+    </div>
+    <div class="claude-grid">
+      <div>
+        <div class="col-eyebrow">Plugin Superpowers</div>
+        <div class="skill-list">
+          <div class="skill-row"><span class="skill-chip">/brainstorming</span><span class="skill-label">Diseño colaborativo — qué construir y cómo</span></div>
+          <div class="skill-row"><span class="skill-chip">/writing-plans</span><span class="skill-label">Plan TDD paso a paso con código exacto</span></div>
+          <div class="skill-row"><span class="skill-chip">/subagent-driven-dev</span><span class="skill-label">Implementer + Reviewer frescos por tarea</span></div>
+          <div class="skill-row"><span class="skill-chip">/requesting-code-review</span><span class="skill-label">Review final de rama completa</span></div>
+          <div class="skill-row"><span class="skill-chip">/finishing-a-dev-branch</span><span class="skill-label">Tests → push controlado</span></div>
+        </div>
+        <div class="skill-note">Rol del humano: definir <strong>QUÉ</strong> construir, elegir entre opciones, aprobar cada etapa.</div>
+      </div>
+      <div>
+        <div class="col-eyebrow">Bugs detectados por review independiente</div>
+        <div class="bug-list">
+          <div class="bug-item b-red">
+            <div class="bug-label bl-red">Critical</div>
+            El modelo CP-SAT vacío devolvía <code>"optimal"</code> cuando todas las materias tenían turno restringido — se confundía silenciosamente con éxito.
+          </div>
+          <div class="bug-item b-amb">
+            <div class="bug-label bl-amb">Important</div>
+            Los turnos se ordenaban alfabéticamente: <code>"Noche"</code> antes que <code>"Tarde"</code> en las estadísticas de distribución.
+          </div>
+          <div class="bug-item b-amb">
+            <div class="bug-label bl-amb">Important</div>
+            <code>TurnosBadge</code> no distinguía <code>null</code> (todos los turnos) de <code>[]</code> (ningún turno permitido).
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ SLIDE 7: PRÓXIMOS PASOS ══════ -->
+<div class="slide content-slide" id="s6">
+  <div class="slide-sidebar"></div>
+  <div class="slide-body">
+    <div class="slide-head">
+      <div class="eyebrow">Roadmap</div>
+      <h2>Próximos Pasos</h2>
+    </div>
+    <div class="next-list">
+      <div class="next-item">
+        <div class="next-num">1</div>
+        <div class="next-content"><h3>Notificaciones en tiempo real</h3><p>WebSocket para avisar cuando el job de generación termina — hoy el usuario recarga manualmente.</p></div>
+      </div>
+      <div class="next-item">
+        <div class="next-num">2</div>
+        <div class="next-content"><h3>Gestión de alumnos desde la UI</h3><p>El historial académico se carga directo en la DB; agregar pantalla de carga y endpoints REST.</p></div>
+      </div>
+      <div class="next-item">
+        <div class="next-num">3</div>
+        <div class="next-content"><h3>Comparación entre versiones de oferta</h3><p>Ver diferencias entre la oferta actual y la anterior antes de aprobar una nueva generación.</p></div>
+      </div>
+      <div class="next-item">
+        <div class="next-num">4</div>
+        <div class="next-content"><h3>Export a formatos institucionales</h3><p>PDF y Excel para integración con SIGEDU y SIU Guaraní.</p></div>
+      </div>
+      <div class="next-item">
+        <div class="next-num">5</div>
+        <div class="next-content"><h3>Dashboard de demanda</h3><p>Visualización de cuántos alumnos esperan cada materia, para planificación de contrataciones.</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ SLIDE 8: DEMO ══════ -->
+<div class="slide content-slide" id="s7">
+  <div class="slide-sidebar"></div>
+  <div class="slide-body">
+    <div class="slide-head">
+      <div class="eyebrow">En vivo</div>
+      <h2>Demo</h2>
+    </div>
+    <div class="demo-grid">
+      <div>
+        <div class="col-eyebrow" style="margin-bottom:12px;">¿Qué vamos a ver?</div>
+        <div class="check-list">
+          <div class="check-item"><div class="check-icon">✓</div><span>Login y sesión persistente</span></div>
+          <div class="check-item"><div class="check-icon">✓</div><span>Configuración de parámetros globales y docentes</span></div>
+          <div class="check-item"><div class="check-icon">✓</div><span>Carga de materias con turnos restringidos</span></div>
+          <div class="check-item"><div class="check-icon">✓</div><span>Generación de oferta — job asincrónico</span></div>
+          <div class="check-item"><div class="check-icon">✓</div><span>Calendario editable con cursos asignados</span></div>
+          <div class="check-item"><div class="check-icon">✓</div><span>Insights: alertas y estadísticas del solver</span></div>
+        </div>
+      </div>
+      <div>
+        <div class="col-eyebrow" style="margin-bottom:12px;">Logros del MVP</div>
+        <div class="achieve-list">
+          <div class="achieve-card"><h3 class="ah-green">Backend</h3><p>API REST completa · 59 tests · migraciones Alembic · optimizador CP-SAT con 5 restricciones duras</p></div>
+          <div class="achieve-card"><h3 class="ah-green">Frontend</h3><p>SPA React 18 · calendario editable · autenticación JWT persistente · drawer de insights</p></div>
+          <div class="achieve-card"><h3 class="ah-blue">Proceso</h3><p>Desarrollado 100% con Claude Code · subagentes con reviews independientes · push controlado a main</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<div class="progress" id="progress"></div>
+<div class="slide-num"  id="slideNum"></div>
+<div class="nav-hint">← →</div>
+
+<script>
+const slides = document.querySelectorAll('.slide');
+const total  = slides.length;
+let cur = 0;
+
+const prog = document.getElementById('progress');
+slides.forEach((_, i) => {
+  const d = document.createElement('div');
+  d.className = 'dot' + (i === 0 ? ' active' : '');
+  d.addEventListener('click', () => goTo(i));
+  prog.appendChild(d);
+});
+
+function goTo(n) {
+  slides[cur].classList.remove('active');
+  prog.children[cur].classList.remove('active');
+  cur = Math.max(0, Math.min(total - 1, n));
+  slides[cur].classList.add('active');
+  prog.children[cur].classList.add('active');
+  document.getElementById('slideNum').textContent = `${cur + 1} / ${total}`;
+}
+goTo(0);
+
+document.addEventListener('keydown', e => {
+  if (['ArrowRight','ArrowDown',' '].includes(e.key)) { e.preventDefault(); goTo(cur+1); }
+  if (['ArrowLeft','ArrowUp'].includes(e.key))        { e.preventDefault(); goTo(cur-1); }
+});
+
+document.addEventListener('click', e => {
+  if (e.target.closest('.dot')) return;
+  goTo(e.clientX > window.innerWidth/2 ? cur+1 : cur-1);
+});
+</script>
+</body>
+</html>

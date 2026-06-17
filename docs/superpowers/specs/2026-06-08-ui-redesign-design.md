@@ -1,6 +1,6 @@
 # UI Redesign — Generador de Oferta Académica
 
-**Fecha:** 2026-06-17
+**Fecha:** 2026-06-08
 **Estado:** Aprobado por usuario
 
 ---

@@ -1,6 +1,6 @@
 # Pantallas de Consulta — Carreras, Materias y Docentes
 
-**Fecha:** 2026-06-17
+**Fecha:** 2026-06-15
 **Estado:** Aprobado por usuario
 
 ---
