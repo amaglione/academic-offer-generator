@@ -512,7 +512,6 @@ body {
       <span class="kw">shadcn/ui</span>
       <span class="kw">Alembic</span>
       <span class="kw">JWT Auth</span>
-      <span class="kw">pytest · 59 tests</span>
     </div>
   </div>
 </div>
@@ -522,14 +521,14 @@ body {
   <div class="slide-sidebar"></div>
   <div class="slide-body">
     <div class="slide-head">
-      <div class="eyebrow">Contexto</div>
-      <h2>El Problema</h2>
+      <div class="eyebrow">Introducción</div>
+      <h2>Contexto General</h2>
     </div>
     <div class="prob-list">
       <div class="prob-card">
         <div class="prob-icon-wrap">🏫</div>
         <div class="prob-text">
-          <h3>Punto de partida: SIGEDU</h3>
+          <h3>Punto de partida: Sistema de Gestión Académica</h3>
           <p>El sistema de gestión académica registra alumnos, materias aprobadas, docentes y correlatividades. Sin embargo, <strong style="color:var(--white)">no genera la oferta académica</strong> — ese proceso queda completamente a cargo del personal de manera manual cada semestre.</p>
         </div>
       </div>
@@ -561,55 +560,16 @@ body {
     </div>
 
     <div class="sol-desc">
-      Toma los datos de SIGEDU, calcula automáticamente cuántos alumnos pueden cursar cada materia según sus correlatividades, y ejecuta un optimizador matemático para asignar docentes y franjas horarias respetando todas las restricciones. El resultado es un <strong style="color:var(--white)">calendario editable</strong> que el personal puede ajustar antes de publicar.
+      Toma los datos del sistema de gestión, calcula automáticamente cuántos alumnos pueden cursar cada materia según sus correlatividades, y ejecuta un optimizador matemático para asignar docentes y franjas horarias respetando todas las restricciones. El resultado es un <strong style="color:var(--white)">calendario editable</strong> que el personal puede ajustar antes de exportar.
     </div>
 
-    <div class="feat-grid">
-      <div class="feat-card">
-        <div class="feat-icon">🧮</div>
-        <h3>Motor CP-SAT</h3>
-        <p>Asignación óptima de cursos con restricciones duras y blandas</p>
-      </div>
-      <div class="feat-card">
-        <div class="feat-icon">📊</div>
-        <h3>Análisis de demanda</h3>
-        <p>Calcula alumnos elegibles considerando prerequisitos y aprobaciones</p>
-      </div>
-      <div class="feat-card">
-        <div class="feat-icon">📅</div>
-        <h3>Calendario visual</h3>
-        <p>Vista por turnos/días con edición manual de cursos</p>
-      </div>
-      <div class="feat-card">
-        <div class="feat-icon">⚙️</div>
-        <h3>Turnos configurables</h3>
-        <p>Parámetros globales: turnos, días, aulas, límite horario por docente</p>
-      </div>
-      <div class="feat-card">
-        <div class="feat-icon">🎓</div>
-        <h3>Pantalla de carreras</h3>
-        <p>Materias por año con docentes habilitados y turnos por materia</p>
-      </div>
-      <div class="feat-card">
-        <div class="feat-icon">💡</div>
-        <h3>Insights del optimizador</h3>
-        <p>Alertas de solapamientos, carga docente, materias sin asignar</p>
-      </div>
-      <div class="feat-card">
-        <div class="feat-icon">🔐</div>
-        <h3>Login persistente</h3>
-        <p>Sesión que sobrevive reinicios del browser vía localStorage</p>
-      </div>
-      <div class="feat-card">
-        <div class="feat-icon">🏢</div>
-        <h3>Multi-tenant</h3>
-        <p>Múltiples universidades en una sola instancia, datos completamente aislados</p>
-      </div>
-      <div class="feat-card">
-        <div class="feat-icon">📤</div>
-        <h3>Exportación</h3>
-        <p>Oferta publicada exportable como JSON estructurado</p>
-      </div>
+    <div class="feat-list" style="grid-template-columns: 1fr;">
+      <div class="feat-item"><div class="feat-dot"></div><span class="feat-item-name">Carga de Carreras</span><span class="feat-item-desc">— materias por año con docentes habilitados y turnos configurables por materia</span></div>
+      <div class="feat-item"><div class="feat-dot"></div><span class="feat-item-name">Carga de Docentes</span><span class="feat-item-desc">— migración de docentes con materias que pueden dictar</span></div>
+      <div class="feat-item"><div class="feat-dot"></div><span class="feat-item-name">Resultados Académicos</span><span class="feat-item-desc">— importación de resultados académicos para calcular la demanda real por materia.</span></div>
+      <div class="feat-item"><div class="feat-dot"></div><span class="feat-item-name">Motor de oferta académica</span><span class="feat-item-desc">— optimizador CP-SAT que asigna docentes y franjas horarias respetando todas las restricciones</span></div>
+      <div class="feat-item"><div class="feat-dot"></div><span class="feat-item-name">Insights de oferta académica</span><span class="feat-item-desc">— alertas de solapamientos, carga docente, materias sin asignar y estadísticas del solver</span></div>
+      <div class="feat-item"><div class="feat-dot"></div><span class="feat-item-name">Configuración de parámetros</span><span class="feat-item-desc">— turnos, días, duración de clases, cantidad de aulas y límites por docente</span></div>
     </div>
   </div>
 </div>
@@ -620,26 +580,20 @@ body {
   <div class="slide-body">
     <div class="slide-head">
       <div class="eyebrow">Infraestructura</div>
-      <h2>Tecnologías</h2>
+      <h2>Tecnologías más importantes</h2>
     </div>
     <div class="tech-grid">
       <div>
         <div class="tech-section-title">Backend</div>
         <div class="tech-item"><span class="tech-name">Python 3.11 + FastAPI</span><span class="tech-role">API REST</span></div>
-        <div class="tech-item"><span class="tech-name">SQLAlchemy 2.0 + Alembic</span><span class="tech-role">ORM + migraciones</span></div>
         <div class="tech-item"><span class="tech-name">PostgreSQL</span><span class="tech-role">Base de datos</span></div>
-        <div class="tech-item"><span class="tech-name">Google OR-Tools — CP-SAT</span><span class="tech-role">Optimizador</span></div>
+        <div class="tech-item"><span class="tech-name">Google OR-Tools — CP-SAT</span><span class="tech-role">Optimizador combinatorial</span></div>
         <div class="tech-item"><span class="tech-name">JWT (python-jose)</span><span class="tech-role">Autenticación</span></div>
-        <div class="tech-item"><span class="tech-name">pytest</span><span class="tech-role">59 tests</span></div>
       </div>
       <div>
         <div class="tech-section-title">Frontend</div>
         <div class="tech-item"><span class="tech-name">React 18 + Vite</span><span class="tech-role">SPA framework</span></div>
         <div class="tech-item"><span class="tech-name">Tailwind CSS + shadcn/ui</span><span class="tech-role">Estilos y componentes</span></div>
-        <div class="tech-item"><span class="tech-name">lucide-react</span><span class="tech-role">Íconos</span></div>
-        <div class="tech-item"><span class="tech-name">axios + interceptores JWT</span><span class="tech-role">HTTP client</span></div>
-        <div class="tech-item"><span class="tech-name">sonner</span><span class="tech-role">Notificaciones toast</span></div>
-        <div class="tech-item"><span class="tech-name">localStorage</span><span class="tech-role">Sesión persistente</span></div>
       </div>
     </div>
   </div>
@@ -653,23 +607,22 @@ body {
       <div class="eyebrow">Algoritmo</div>
       <h2>Motor de Optimización — CP-SAT</h2>
     </div>
-    <div class="var-box">Variable de decisión: &nbsp;<strong>x[curso, docente, franja]</strong> &in; {0, 1}</div>
-    <div class="rules-grid">
+   <div class="rules-grid">
       <div>
         <div class="rules-block-title rbt-red">RESTRICCIONES DURAS</div>
         <ul class="rules-list">
-          <li><span class="rdot rdot-blue">●</span> Cada curso → exactamente 1 par (docente, franja)</li>
-          <li><span class="rdot rdot-blue">●</span> Un docente no puede dar 2 cursos en la misma franja</li>
+          <li><span class="rdot rdot-blue">●</span> Cada curso → exactamente 1 par (docente, turno)</li>
+          <li><span class="rdot rdot-blue">●</span> Un docente no puede dar 2 cursos en el mismo turno</li>
           <li><span class="rdot rdot-blue">●</span> Horas semanales por docente ≤ límite configurado</li>
           <li><span class="rdot rdot-blue">●</span> Cursos simultáneos ≤ aulas disponibles</li>
-          <li><span class="rdot rdot-blue">●</span> Turnos permitidos por materia (allowed_turnos)</li>
+          <li><span class="rdot rdot-blue">●</span> Turnos permitidos por materia</li>
         </ul>
       </div>
       <div>
         <div class="rules-block-title rbt-yellow">OBJETIVO — blandas</div>
         <ul class="rules-list">
-          <li><span class="rdot rdot-amber">●</span> Minimizar solapamientos de materias del mismo año/carrera en la misma franja</li>
-          <li><span class="rdot rdot-amber">●</span> Balancear carga horaria entre franjas disponibles</li>
+          <li><span class="rdot rdot-amber">●</span> Minimizar solapamientos de materias del mismo año/carrera en el mismo turno</li>
+          <li><span class="rdot rdot-amber">●</span> Balancear carga horaria entre turnos disponibles</li>
         </ul>
         <div class="rules-note">
           <strong>Partial infeasibility:</strong> si una materia no tiene turno válido, el solver continúa con las demás e informa cuál quedó sin asignar y por qué.<br><br>
@@ -732,23 +685,23 @@ body {
     <div class="next-list">
       <div class="next-item">
         <div class="next-num">1</div>
-        <div class="next-content"><h3>Notificaciones en tiempo real</h3><p>WebSocket para avisar cuando el job de generación termina — hoy el usuario recarga manualmente.</p></div>
+        <div class="next-content"><h3>Nuevas restricciones para el motor</h3><p>Horarios de docentes, sedes, etc.</p></div>
       </div>
       <div class="next-item">
         <div class="next-num">2</div>
-        <div class="next-content"><h3>Gestión de alumnos desde la UI</h3><p>El historial académico se carga directo en la DB; agregar pantalla de carga y endpoints REST.</p></div>
+        <div class="next-content"><h3>Comparacion de ofertas</h3><p>Permitir al usuario administrador comparar diferentes versiones de la oferta.</p></div>
       </div>
       <div class="next-item">
         <div class="next-num">3</div>
-        <div class="next-content"><h3>Comparación entre versiones de oferta</h3><p>Ver diferencias entre la oferta actual y la anterior antes de aprobar una nueva generación.</p></div>
+        <div class="next-content"><h3>Dashboard de demanda</h3><p>Dashboard interactivo que analice la posible demanda de materias a partir del estado de los alumnos.</p></div>
       </div>
       <div class="next-item">
         <div class="next-num">4</div>
-        <div class="next-content"><h3>Export a formatos institucionales</h3><p>PDF y Excel para integración con SIGEDU y SIU Guaraní.</p></div>
+        <div class="next-content"><h3>Integración con sistemas institucionales</h3><p>Integración via API o DB con sistema de gestión academico</p></div>
       </div>
       <div class="next-item">
         <div class="next-num">5</div>
-        <div class="next-content"><h3>Dashboard de demanda</h3><p>Visualización de cuántos alumnos esperan cada materia, para planificación de contrataciones.</p></div>
+        <div class="next-content"><h3>Pruebas de Stress</h3><p>Probar con mayor cantidad de datos.</p></div>
       </div>
     </div>
   </div>
@@ -777,8 +730,8 @@ body {
       <div>
         <div class="col-eyebrow" style="margin-bottom:12px;">Logros del MVP</div>
         <div class="achieve-list">
-          <div class="achieve-card"><h3 class="ah-green">Backend</h3><p>API REST completa · 59 tests · migraciones Alembic · optimizador CP-SAT con 5 restricciones duras</p></div>
-          <div class="achieve-card"><h3 class="ah-green">Frontend</h3><p>SPA React 18 · calendario editable · autenticación JWT persistente · drawer de insights</p></div>
+          <div class="achieve-card"><h3 class="ah-green">Backend</h3><p>Primera versión del motor funcional</p></div>
+          <div class="achieve-card"><h3 class="ah-green">Frontend</h3><p>Primera versión del frontend funcional</p></div>
           <div class="achieve-card"><h3 class="ah-blue">Proceso</h3><p>Desarrollado 100% con Claude Code · subagentes con reviews independientes · push controlado a main</p></div>
         </div>
       </div>

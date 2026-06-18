@@ -115,13 +115,6 @@ npm run dev
 
 El frontend queda disponible en `http://localhost:5173`.
 
-### Credenciales por defecto
-
-| Campo | Valor |
-|---|---|
-| Usuario | `admin@demo.edu` |
-| Contraseña | `admin123` |
-
 ## API
 
 ```
@@ -160,18 +153,6 @@ PYTHONPATH=. .venv/bin/pytest tests/ -v
 7. Hacer clic en **"✓ Aprobar oferta"** para publicarla
 
 Los cursos se colorean por año de cursada (azul=1°, verde=2°, violeta=3°, naranja=4°, rojo=5°). Los cursos modificados manualmente se marcan con ✎.
-
-## Base de datos
-
-Credenciales del contenedor Docker:
-
-| Campo | Valor |
-|---|---|
-| Host | `localhost` |
-| Puerto | `5432` |
-| Base de datos | `oferta_db` |
-| Usuario | `oferta` |
-| Contraseña | `oferta` |
 
 ## Multitenancy
 

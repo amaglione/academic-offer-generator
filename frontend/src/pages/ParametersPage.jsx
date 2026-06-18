@@ -175,7 +175,7 @@ export default function ParametersPage() {
               <CardDescription>Límites de alumnos, aulas y carga docente</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <ParamField label="Alumnos por curso" id="max_students_per_course" value={params.max_students_per_course} onChange={v => update('max_students_per_course', v)} unit="alumnos" />
+              <ParamField label="Alumnos por Aula" id="max_students_per_course" value={params.max_students_per_course} onChange={v => update('max_students_per_course', v)} unit="alumnos" />
               <ParamField label="Aulas disponibles" id="available_classrooms" value={params.available_classrooms} onChange={v => update('available_classrooms', v)} unit="aulas" />
               <ParamField label="Hs. semanales por docente" id="max_weekly_hours_per_professor" value={params.max_weekly_hours_per_professor} onChange={v => update('max_weekly_hours_per_professor', v)} unit="horas" />
             </CardContent>
