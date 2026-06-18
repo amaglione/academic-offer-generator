@@ -53,18 +53,6 @@ backend/app/
 - Los tests de optimizer usan datos sintéticos pequeños; mantener ese patrón para velocidad.
 - No mockear la DB en tests de integración; usar la fixture `db` de `conftest.py`.
 
-### Documentación
-
-- **Al finalizar toda nueva feature o modificación significativa**, actualizar `README.md` para reflejar los cambios: nuevos endpoints, parámetros, componentes de UI, comportamientos del optimizador, o cualquier instrucción de uso que haya cambiado.
-- No crear documentación en archivos separados; mantener `README.md` como fuente única de verdad para quien usa/desarrolla el proyecto.
-- El README debe describir QUÉ hace el sistema y CÓMO usarlo; no incluir detalles de implementación interna (esos van en comentarios de código o mensajes de commit).
-
-### Información sensible
-
-- **NUNCA incluir en README, comentarios, código ni ningún archivo del repositorio**: contraseñas, tokens, API keys, cadenas de conexión con credenciales, usuarios reales, o cualquier secreto.
-- Los secretos van exclusivamente en `.env` (ignorado por git); documentar solo que existe un `.env.example` con las variables necesarias.
-- **Ante cualquier duda sobre si un dato es sensible, detener la acción y pedir confirmación al usuario antes de continuar.**
-
 ## Comandos útiles
 
 Ver `/seed-db`, `/run-tests` y `/dev` en `.claude/commands/`.
